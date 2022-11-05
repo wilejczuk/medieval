@@ -1,0 +1,89 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Contribute to the catalogue</title>
+</head>
+
+<body>
+  <h1>You are authenticated</h1>
+  <p><a href="/logout">Logout and reload</a></p>
+
+  <table>
+    <tr>
+      <td width='400'>
+        <section id='saints'>
+          <form action='addSaint' method='post'>
+            <div>
+              <h1>Add a Saint</h1>
+              <div>
+                <label>Name: </label>
+                <input type="text" placeholder="Enter the Saint's name" name="saintName" required>
+              </div>
+              <div>
+                <label>Epithet: </label>
+                <input type="text" placeholder="Enter the Saint's epithet" name="saintEpithet" required>
+              </div>
+              <div>
+                <label>Description: </label>
+                <textarea placeholder="Enter the Saint's description" name="saintDescription" rows="5" cols="33">
+                </textarea>
+              </div>
+              <div>
+                <button type="submit">Register</button>
+              </div>
+            </div>
+          </form>
+        </section>
+      </td>
+      <td width='200'>
+        <table>
+          <% for(var i=0; i < saints.length; i++) { %>
+            <tr>
+              <td>
+                <%= saints[i].name %>
+              </td>
+              <td>
+                <%= saints[i].epithet %>
+              </td>
+            </tr>
+          <% } %>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <table>
+    <tr>
+      <td width='400'>
+        <section id='signs'>
+          <form action='addSign' method='post' enctype="multipart/form-data">
+            <div>
+              <h1>Add a Sign</h1>
+              <div>
+                <label>Upload an image: </label>
+                <input type="file" name="signImage" accept="image/png, image/jpeg" required>
+              </div>
+              <div>
+                <label>Description: </label>
+                <textarea placeholder="Enter the sign description" name="signDescription" rows="5" cols="33">
+                </textarea>
+              </div>
+              <div>
+                <button type="submit">Register</button>
+              </div>
+            </div>
+          </form>
+        </section>
+      </td>
+      <td width='100%'>
+          <% for(var i=0; i < signs.length; i++) { %>
+                <img src=/signs/<%= signs[i].id %>.<%= signs[i].type %> height=100>
+          <% } %>
+      </td>
+    </tr>
+  </table>
+
+</body>
+
+</html>

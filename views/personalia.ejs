@@ -1,0 +1,72 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Contribute to the catalogue</title>
+</head>
+
+<body>
+  <h1>You are authenticated</h1>
+  <p><a href="/logout">Logout and reload</a></p>
+
+  <table>
+    <tr>
+      <td width='400'>
+        <section id='personalia'>
+          <form action='addPersona' method='post'>
+            <div>
+              <h1>Add a Persona</h1>
+              <div>
+                <label>Dukely Name: </label>
+                <input type="text" name="personaName" required>
+              </div>
+              <div>
+                <label>Патрон: </label>
+                <select name="christianPatron">
+                  <option value=0>Неизвестен</option>
+                  <% for(var i=0; i < saints.length; i++) { %>
+                    <option value=<%= saints[i].id %>><%= saints[i].name + ` (` + saints[i].epithet + `)` %></option>
+                  <% } %>
+                </select>
+              </div>
+              <div>
+                <label>Родился: </label>
+                <input type="number" placeholder="YYYY" min="950" max="1500" name="dateBirth">
+              </div>
+              <div>
+                <label>Вступил в права: </label>
+                <input type="number" placeholder="YYYY" min="950" max="1500" name="datePower">
+              </div>
+              <div>
+                <label>Умер: </label>
+                <input type="number" placeholder="YYYY" min="950" max="1500" name="dateDeath">
+              </div>
+              <div>
+                <button type="submit">Register</button>
+              </div>
+            </div>
+          </form>
+        </section>
+      </td>
+      <td width='200'>
+        <table>
+          <% for(var i=0; i < personalia.length; i++) { %>
+            <tr>
+              <td>
+                <%= personalia[i].name %> 
+                (<%= personalia[i].dateBirth %> ð <%= personalia[i].datePower %> ┼ <%= personalia[i].dateDeath %>)
+              </td>
+              <td width=50>
+              </td>
+              <td>
+                <%= personalia[i].saint %>
+              </td>
+            </tr>
+          <% } %>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+
+</html>
