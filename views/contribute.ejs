@@ -47,7 +47,7 @@
                 <%= saints[i].epithet %>
               </td>
             </tr>
-          <% } %>
+            <% } %>
         </table>
       </td>
     </tr>
@@ -76,12 +76,39 @@
           </form>
         </section>
       </td>
-      <td width='100%'>
-          <% for(var i=0; i < signs.length; i++) { %>
-                <img src=/signs/<%= signs[i].id %>.<%= signs[i].type %> height=100>
-          <% } %>
+      <td>
+        <form action='assignSign' method='post'>
+        <table>
+          <tr>
+            <% for(var i=0; i < signs.length; i++) { %>
+              <td align=center>
+                <img src=/signs/<%=signs[i].id %>.<%= signs[i].type %> height=100>
+                <div><input type="radio" name="radioSign" value=<%=signs[i].id %>></div>
+              </td>
+              <% } %>
+          </tr>
+          <tr>
+            <td colspan=<%=signs.length %>>
+              <div>
+                <label>Связать с: </label>
+                <select name="prince">
+                  <option value=0>Еще не добавлен</option>
+                  <% for(var i=0; i < personalia.length; i++) { %>
+                    <option value=<%=personalia[i].id %>><%= personalia[i].name %>
+                    </option>
+                    <% } %>
+                </select>
+              </div>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <button type="submit">Связать</button>
+        </div>
+        </form>
       </td>
     </tr>
+
   </table>
 
 </body>

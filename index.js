@@ -149,7 +149,7 @@ app.get('/logout', (req, res, next) => {
 });
 
 app.get('/login-success', (req, res, next) => {
-    res.send('<p>You successfully logged in. --> Go to protected route: <a href="/contribute">словари</a> или <a href="/personalia">персоналии</a></p>');
+    res.render('login-success');
 });
 
 app.get('/login-failure', (req, res, next) => {
@@ -181,9 +181,12 @@ app.post('/register', userExists, (req, res, next) => {
 
 app.post('/login', passport.authenticate('local', { failureRedirect: '/login-failure', successRedirect: '/login-success' }));
 
+// CMS editor routes (authorized - yes, admin - no)
+
 app.get('/contribute', isAuth, (req, res, next) => {
     let saints = [];
     let signs = [];
+    let personalia = [];
     connection.query('Select * from saints', function (error, results) {
         if (error) {
             console.log(error);
@@ -196,7 +199,15 @@ app.get('/contribute', isAuth, (req, res, next) => {
                 }
                 else {
                     signs = results;
-                    res.render('contribute', { saints: saints, signs: signs });    
+                    connection.query('Select * from personalia', function (error, results) {
+                        if (error) {
+                            console.log(error);
+                        }
+                        else {
+                            personalia = results;
+                            res.render('contribute', { saints: saints, signs: signs, personalia: personalia });    
+                        }
+                    });
                 }
             });
         }
@@ -206,26 +217,64 @@ app.get('/contribute', isAuth, (req, res, next) => {
 app.get('/personalia', isAuth, (req, res, next) => {
     let saints = [];
     let personalia = [];
+    let personSignConnections = [];
     connection.query('Select * from saints', function (error, results) {
         if (error) {
             console.log(error);
         }
         else {
             saints = results.sort((a, b) => {return(a.name < b.name)?-1:1});
-            connection.query(`Select p.name, s.name saint, p.dateBirth, p.datePower, p.dateDeath from personalia p
+            connection.query(`Select p.id, p.name, s.name saint, 
+            p.birthProximity, p.powerProximity, p.deathProximity,
+            p.dateBirth, p.datePower, p.dateDeath from personalia p
              left join saints s on p.idPatron=s.id`, function (error, results) {
                 if (error) {
                     console.log(error);
                 }
                 else {
-                    personalia = results;
-                    console.log(saints);
-                    res.render('personalia', { saints: saints, personalia: personalia });    
+                    personalia = results.sort((a, b) => {return(a.name < b.name)?-1:1});
+                    connection.query(`Select ps.idPrince, ps.idSign, s.type from princeSign ps
+                    left join signs s on s.id = ps.idSign`, function (error, results) {
+                        if (error) {
+                            console.log(error);
+                        }
+                        else {
+                            personSignConnections = results;
+                            res.render('personalia', { saints: saints, personalia: personalia, personSignConnections: personSignConnections });    
+                        }
+                    });    
                 }
             });
         }
     });
 });
+
+app.get('/types', isAuth, (req, res, next) => {
+    let saints = [];
+    let types = [];
+    connection.query('Select * from saints', function (error, results) {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            saints = results.sort((a, b) => {return(a.name < b.name)?-1:1});
+            connection.query(`select t.id, s1.name obvName, s1.epithet obvEpithet, s2.name revName, s2.epithet revEpithet
+            from types t 
+            left join saints s1 on s1.id = t.obvImageId 
+            left join saints s2 on s2.id = t.revImageId`, function (error, results) {
+                if (error) {
+                    console.log(error);
+                }
+                else {
+                    types = results;
+                    res.render('types', { saints: saints, types: types });    
+                }
+            });   
+        }
+    });
+});
+
+// Supplementary routes
 
 app.get('/admin-route', isAdmin, (req, res, next) => {
     res.send('<h1>You are admin</h1><p><a href="/logout">Logout and reload</a></p>');
@@ -278,8 +327,11 @@ app.post('/addSign', (req, res, next) => {
 });
 
 app.post('/addPersona', (req, res, next) => {
-    connection.query('Insert into personalia(name, idPatron, dateBirth, datePower, dateDeath) values(?,?,?,?,?) ',
-     [req.body.personaName, req.body.christianPatron, req.body.dateBirth, req.body.datePower, req.body.dateDeath],
+    connection.query(`Insert into personalia(name, idPatron, idFather, dateBirth, datePower, dateDeath, 
+        birthProximity, powerProximity, deathProximity) values(?,?,?,?,?,?,?,?,?)`,
+     [req.body.personaName, req.body.christianPatron, req.body.father, 
+        req.body.dateBirth, req.body.datePower, req.body.dateDeath, 
+        req.body.birthProximity?1:0, req.body.powerProximity?1:0, req.body.deathProximity?1:0],
       function (error, results, fields) {
         if (error) {
             console.log(error);
@@ -289,4 +341,34 @@ app.post('/addPersona', (req, res, next) => {
         }
     });
     res.redirect('/personalia');
+});
+
+app.post('/assignSign', (req, res, next) => {
+    connection.query(`Insert into princeSign(idPrince, idSign) values(?,?)`, [req.body.prince, req.body.radioSign],
+      function (error, results, fields) {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            console.log(`Successfully assigned the sign`);
+        }
+    });
+    res.redirect('/contribute');
+});
+
+app.post('/addType', (req, res, next) => {
+    let dateLow = req.body.dateLow==''? null:req.body.dateLow;
+    let dateHigh = req.body.dateHigh==''? null:req.body.dateHigh;
+    connection.query(`Insert into types(obvImageGroup, obvImageId, revImageGroup, revImageId, 
+        dateLow, dateHigh, isAnonymousImitation) values(?,?,?,?,?,?,?)`, [req.body.obvImageGroup, req.body.obvImageId,
+         req.body.revImageGroup, req.body.revImageId, dateLow, dateHigh, req.body.isAnonymousImitation],
+      function (error, results, fields) {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            console.log(`Successfully added the type`);
+        }
+    });
+    res.redirect('/types');
 });

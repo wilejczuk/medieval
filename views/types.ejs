@@ -1,0 +1,98 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Contribute to the catalogue</title>
+</head>
+
+<body>
+  <h1>You are authenticated</h1>
+  <p><a href="/logout">Logout and reload</a></p>
+
+  <table>
+    <tr>
+      <td width='400'>
+        <section id='newTypes'>
+          <form action='addType' method='post'>
+            <div>
+              <h1>Add a Type</h1>
+              <div>
+                <label>Тип аверса: </label>
+                <select name="obvImageGroup" 
+                  onchange="{document.getElementById(`obvSaints`).style.display = this.value == 1 ? 'block' : 'none';}">
+                  <option value=1>Святой</option>
+                  <option value=2>Буква</option>
+                  <option value=3>Знак</option>
+                  <option value=4>Крест</option>
+                  <option value=5>Текст</option>
+                </select>
+              </div>
+              <div id="obvSaints">
+                <label>Изображение аверса: </label>
+                <select name="obvImageId">
+                  <% for(var i=0; i < saints.length; i++) { %>
+                    <option value=<%= saints[i].id %>><%= saints[i].name %>  <%= saints[i].epithet %></option>
+                  <% } %>
+                </select>
+              </div>
+
+              <div>
+                <label>Тип реверса: </label>
+                <select name="revImageGroup" 
+                  onchange="{document.getElementById(`revSaints`).style.display = this.value == 1 ? 'block' : 'none';}">
+                  <option value=1>Святой</option>
+                  <option value=2>Буква</option>
+                  <option value=3>Знак</option>
+                  <option value=4>Крест</option>
+                  <option value=5>Текст</option>
+                </select>
+              </div>
+              <div id="revSaints">
+                <label>Изображение реверса: </label>
+                <select name="revImageId">
+                  <% for(var i=0; i < saints.length; i++) { %>
+                    <option value=<%= saints[i].id %>><%= saints[i].name %> <%= saints[i].epithet %></option>
+                  <% } %>
+                </select>
+              </div>
+
+              <div>
+                <label>Нижняя граница датировки: </label>
+                <input type="number" placeholder="YYYY" min="950" max="1500" name="dateLow">
+              </div>
+              <div>
+                <label>Верхняя граница датировки: </label>
+                <input type="number" placeholder="YYYY" min="950" max="1500" name="dateHigh">
+              </div>
+
+              <div>
+                <input type="checkbox" name="isAnonymousImitation" value="0"> Анонимное подражание
+              </div>
+
+              <div>
+                <button type="submit">Register</button>
+              </div>
+            </div>
+          </form>
+        </section>
+      </td>
+      <td width='500'>
+        <table>
+          <% for(var i=0; i < types.length; i++) { %>
+            <tr>
+              <td>
+                <%= types[i].id %>
+              </td>
+              <td>
+                <%= types[i].obvName %> <%= types[i].obvEpithet %> - 
+                <%= types[i].revName %> <%= types[i].revEpithet %>
+              </td>
+            </tr>
+            <% } %>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+
+</html>

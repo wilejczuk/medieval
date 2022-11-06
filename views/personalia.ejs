@@ -17,7 +17,7 @@
             <div>
               <h1>Add a Persona</h1>
               <div>
-                <label>Dukely Name: </label>
+                <label>Имя: </label>
                 <input type="text" name="personaName" required>
               </div>
               <div>
@@ -30,16 +30,28 @@
                 </select>
               </div>
               <div>
+                <label>Отец: </label>
+                <select name="father">
+                  <option value=0>Еще не добавлен</option>
+                  <% for(var i=0; i < personalia.length; i++) { %>
+                    <option value=<%= personalia[i].id %>><%= personalia[i].name %></option>
+                  <% } %>
+                </select>
+              </div>
+              <div>
                 <label>Родился: </label>
                 <input type="number" placeholder="YYYY" min="950" max="1500" name="dateBirth">
+                <input type="checkbox" name="birthProximity" value="0"> Примерно
               </div>
               <div>
                 <label>Вступил в права: </label>
                 <input type="number" placeholder="YYYY" min="950" max="1500" name="datePower">
+                <input type="checkbox" name="powerProximity" value="0"> Примерно
               </div>
               <div>
                 <label>Умер: </label>
                 <input type="number" placeholder="YYYY" min="950" max="1500" name="dateDeath">
+                <input type="checkbox" name="deathProximity"value="0"> Примерно
               </div>
               <div>
                 <button type="submit">Register</button>
@@ -48,13 +60,22 @@
           </form>
         </section>
       </td>
-      <td width='200'>
+      <td width='500'>
         <table>
           <% for(var i=0; i < personalia.length; i++) { %>
             <tr>
-              <td>
+              <td width=50>
+                <% for(var j=0; j < personSignConnections.length; j++) { %>
+                  <% if (personSignConnections[j].idPrince == personalia[i].id) { %> 
+                    <img src=/signs/<%=personSignConnections[j].idSign %>.<%= personSignConnections[j].type %> height=40>
+                  <% } %>
+                <% } %>  
+              </td>
+              <td width=300>
                 <%= personalia[i].name %> 
-                (<%= personalia[i].dateBirth %> ð <%= personalia[i].datePower %> ┼ <%= personalia[i].dateDeath %>)
+                (<% if (personalia[i].birthProximity) { %> ~ <% } %> <%= personalia[i].dateBirth %> 
+                  ð <% if (personalia[i].powerProximity) { %> ~ <% } %> <%= personalia[i].datePower %> 
+                  ┼ <% if (personalia[i].deathProximity) { %> ~ <% } %> <%= personalia[i].dateDeath %>)
               </td>
               <td width=50>
               </td>
