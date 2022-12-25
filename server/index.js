@@ -10,6 +10,13 @@ var MySQLStore = require('express-mysql-session')(session);
 var formidable = require('formidable');
 var path = require('path');
 var fs = require('fs-extra');
+const jwt = require('jsonwebtoken');
+
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "http://localhost:3001");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
 
 app.use(session(
     {
@@ -101,6 +108,7 @@ function genPassword(password) {
 }
 
 function isAuth(req, res, next) {
+    console.log (req);
     if (req.isAuthenticated()) {
         next();
     }
@@ -181,6 +189,37 @@ app.post('/register', userExists, (req, res, next) => {
 
 app.post('/login', passport.authenticate('local', { failureRedirect: '/login-failure', successRedirect: '/login-success' }));
 
+app.post('/loginNew',
+  async (req, res, next) => {
+    passport.authenticate('local',
+      async (err, user, info) => {
+        try {
+          if (err || !user) {
+            const error = new Error('An error occurred.');
+
+            return next(error);
+          }
+
+          req.login(
+            user,
+            { session: false },
+            async (error) => {
+              if (error) return next(error);
+
+              const body = { _id: user._id, email: user.email };
+              const token = jwt.sign({ user: body }, 'TOP_SECRET');
+
+              return res.json({ token });
+            }
+          );
+        } catch (error) {
+          return next(error);
+        }
+      }
+    )(req, res, next);
+  }
+);
+
 // CMS editor routes (authorized - yes, admin - no)
 
 app.get('/contribute', isAuth, (req, res, next) => {
@@ -205,7 +244,7 @@ app.get('/contribute', isAuth, (req, res, next) => {
                         }
                         else {
                             personalia = results;
-                            res.render('contribute', { saints: saints, signs: signs, personalia: personalia });    
+                            res.render('contribute', { saints: saints, signs: signs, personalia: personalia });
                         }
                     });
                 }
@@ -224,7 +263,7 @@ app.get('/personalia', isAuth, (req, res, next) => {
         }
         else {
             saints = results.sort((a, b) => {return(a.name < b.name)?-1:1});
-            connection.query(`Select p.id, p.name, s.name saint, 
+            connection.query(`Select p.id, p.name, s.name saint,
             p.birthProximity, p.powerProximity, p.deathProximity,
             p.dateBirth, p.datePower, p.dateDeath from personalia p
              left join saints s on p.idPatron=s.id`, function (error, results) {
@@ -240,9 +279,9 @@ app.get('/personalia', isAuth, (req, res, next) => {
                         }
                         else {
                             personSignConnections = results;
-                            res.render('personalia', { saints: saints, personalia: personalia, personSignConnections: personSignConnections });    
+                            res.render('personalia', { saints: saints, personalia: personalia, personSignConnections: personSignConnections });
                         }
-                    });    
+                    });
                 }
             });
         }
@@ -259,17 +298,17 @@ app.get('/types', isAuth, (req, res, next) => {
         else {
             saints = results.sort((a, b) => {return(a.name < b.name)?-1:1});
             connection.query(`select t.id, s1.name obvName, s1.epithet obvEpithet, s2.name revName, s2.epithet revEpithet
-            from types t 
-            left join saints s1 on s1.id = t.obvImageId 
+            from types t
+            left join saints s1 on s1.id = t.obvImageId
             left join saints s2 on s2.id = t.revImageId`, function (error, results) {
                 if (error) {
                     console.log(error);
                 }
                 else {
                     types = results;
-                    res.render('types', { saints: saints, types: types });    
+                    res.render('types', { saints: saints, types: types });
                 }
-            });   
+            });
         }
     });
 });
@@ -310,7 +349,7 @@ app.post('/addSaint', (req, res, next) => {
 
 app.post('/addSign', (req, res, next) => {
     var form = new formidable.IncomingForm();
-    form.uploadDir = "./public/signs/"; 
+    form.uploadDir = "./public/signs/";
     form.parse(req, function(err, fields, files) {
         let ext = files.signImage.originalFilename.split('.').pop();
         connection.query('Insert into signs(type, description) values(?,?)', [ext, req.body.signDescription], function (error, results, fields) {
@@ -327,10 +366,10 @@ app.post('/addSign', (req, res, next) => {
 });
 
 app.post('/addPersona', (req, res, next) => {
-    connection.query(`Insert into personalia(name, idPatron, idFather, dateBirth, datePower, dateDeath, 
+    connection.query(`Insert into personalia(name, idPatron, idFather, dateBirth, datePower, dateDeath,
         birthProximity, powerProximity, deathProximity) values(?,?,?,?,?,?,?,?,?)`,
-     [req.body.personaName, req.body.christianPatron, req.body.father, 
-        req.body.dateBirth, req.body.datePower, req.body.dateDeath, 
+     [req.body.personaName, req.body.christianPatron, req.body.father,
+        req.body.dateBirth, req.body.datePower, req.body.dateDeath,
         req.body.birthProximity?1:0, req.body.powerProximity?1:0, req.body.deathProximity?1:0],
       function (error, results, fields) {
         if (error) {
@@ -359,7 +398,7 @@ app.post('/assignSign', (req, res, next) => {
 app.post('/addType', (req, res, next) => {
     let dateLow = req.body.dateLow==''? null:req.body.dateLow;
     let dateHigh = req.body.dateHigh==''? null:req.body.dateHigh;
-    connection.query(`Insert into types(obvImageGroup, obvImageId, revImageGroup, revImageId, 
+    connection.query(`Insert into types(obvImageGroup, obvImageId, revImageGroup, revImageId,
         dateLow, dateHigh, isAnonymousImitation) values(?,?,?,?,?,?,?)`, [req.body.obvImageGroup, req.body.obvImageId,
          req.body.revImageGroup, req.body.revImageId, dateLow, dateHigh, req.body.isAnonymousImitation],
       function (error, results, fields) {
