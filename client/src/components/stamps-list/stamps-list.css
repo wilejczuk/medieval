@@ -1,0 +1,29 @@
+.image-right {
+  float: center;
+}
+
+.item-list .list-group-item {
+  cursor: pointer;
+}
+
+.item-list .list-group-item:hover {
+  background-color: #444;
+}
+
+.items-centered {
+  display: flex;
+  justify-content: space-around;
+}
+
+.top-add{
+  padding-top: 10px;
+}
+
+.flex-header {
+  display: grid;
+  grid-template-columns: 50% 50%;
+  padding-left: 40px;
+  padding-bottom: 10px;
+  grid-gap: 30px;
+  width: 95%
+}

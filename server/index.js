@@ -108,7 +108,6 @@ function genPassword(password) {
 }
 
 function isAuth(req, res, next) {
-    console.log (req);
     if (req.isAuthenticated()) {
         next();
     }
@@ -205,10 +204,10 @@ app.post('/loginNew',
             { session: false },
             async (error) => {
               if (error) return next(error);
-
-              const body = { _id: user._id, email: user.email };
+              const body = { id: user.id, salt: user.salt };
+              console.log(user);
               const token = jwt.sign({ user: body }, 'TOP_SECRET');
-
+              console.log(token);
               return res.json({ token });
             }
           );
@@ -253,6 +252,37 @@ app.get('/contribute', isAuth, (req, res, next) => {
     });
 });
 
+app.get('/selectDictionaries', (req, res, next) => {
+    let saints = [];
+    let signs = [];
+    let crosses = [];
+    connection.query('Select * from saints', function (error, results) {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            saints = results.sort((a, b) => {return(a.name < b.name)?-1:1});
+            connection.query('Select * from signs', function (error, results) {
+                if (error) {
+                    console.log(error);
+                }
+                else {
+                    signs = results;
+                    connection.query('Select * from crosses', function (error, results) {
+                        if (error) {
+                            console.log(error);
+                        }
+                        else {
+                            crosses = results;
+                            return res.json ({ saints: saints, signs: signs, crosses: crosses });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
 app.get('/personalia', isAuth, (req, res, next) => {
     let saints = [];
     let personalia = [];
@@ -286,6 +316,80 @@ app.get('/personalia', isAuth, (req, res, next) => {
             });
         }
     });
+});
+
+app.get('/personalia-list',
+        (req, res, next) => {
+            connection.query(`Select p.id, p.name, s.name saint,
+                  p.birthProximity, p.powerProximity, p.deathProximity,
+                  p.dateBirth, p.datePower, p.dateDeath, ps.idSign, sg.type from personalia p
+                   left join saints s on p.idPatron = s.id
+                   left join princeSign ps on ps.idPrince = p.id
+                   left join signs sg on sg.id = ps.idSign`,
+                    function (error, results) {
+                      if (error) console.log(error);
+                      else return res.json (results.sort((a, b) => {return(a.name < b.name)?-1:1}));
+                    }
+            );
+});
+
+app.get('/personalia-with-saints', (req, res, next) => {
+    let saints = [];
+    let personalia = [];
+    connection.query('Select * from saints', function (error, results) {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            saints = results.sort((a, b) => {return(a.name < b.name)?-1:1});
+            connection.query(`Select p.id, p.name, s.name saint,
+            p.birthProximity, p.powerProximity, p.deathProximity,
+            p.dateBirth, p.datePower, p.dateDeath from personalia p
+             left join saints s on p.idPatron=s.id`, function (error, results) {
+                if (error) {
+                    console.log(error);
+                }
+                else {
+                    personalia = results.sort((a, b) => {return(a.name < b.name)?-1:1});
+                    return res.json ({saints: saints, personalia: personalia});
+                }
+            });
+        }
+    });
+});
+
+app.get('/stamps',
+        (req, res, next) => {
+            connection.query(`SELECT DISTINCT tp.id, st1.id obv, st2.id rev,
+                  CASE
+                      WHEN tp.obvImageGroup = 0 THEN tp.obvText
+                  	WHEN tp.obvImageGroup = 1 THEN CONCAT(sn1.name, ' ', sn1.epithet)
+                  	WHEN tp.obvImageGroup = 2 THEN c1.name
+                      WHEN tp.obvImageGroup = 3 THEN 'Ducal sign'
+                      ELSE null
+                  END as obverse,
+                  CASE
+                      WHEN tp.revImageGroup = 0 THEN tp.revText
+                  	WHEN tp.revImageGroup = 1 THEN CONCAT(sn2.name, ' ', sn2.epithet)
+                  	WHEN tp.revImageGroup = 2 THEN c2.name
+                      WHEN tp.revImageGroup = 3 THEN 'Ducal sign'
+                      ELSE null
+                  END as reverse
+                  from topos.types tp
+                  inner join topos.stamps st1 on st1.idType = tp.id
+                  inner join topos.stamps st2 on st2.idType = tp.id
+                  left join topos.saints sn1 on sn1.id = tp.obvImageId
+                  left join topos.saints sn2 on sn2.id = tp.revImageId
+                  left join topos.signs sg1 on sg1.id = tp.obvImageId
+                  left join topos.signs sg2 on sg2.id = tp.revImageId
+                  left join topos.crosses c1 on c1.id = tp.obvImageId
+                  left join topos.crosses c2 on c2.id = tp.revImageId
+                  where st1.isObverse and st1.id!=st2.id`,
+                    function (error, results) {
+                      if (error) console.log(error);
+                      else return res.json (results);
+                    }
+            );
 });
 
 app.get('/types', isAuth, (req, res, next) => {
