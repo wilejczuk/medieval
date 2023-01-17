@@ -52,7 +52,7 @@ export default class SearchBand extends Component {
 
     return (
       <div>
-        <div className="btn-group" role="group" aria-label="Image Type">
+        <div className="btn-group band" role="group" aria-label="Image Type">
           <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("saints")}>Saint</button>
           <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("letters")}>Letter</button>
           <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("signs")}>Tamgha</button>

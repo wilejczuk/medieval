@@ -2,14 +2,6 @@ import React, { Component }  from 'react';
 import './search-details.css';
 
 export default class SearchDetails extends Component {
-  onChangeValue = (event) => {
-    let changingChoice = this.state.choice;
-    event.target.name.charAt(0)==='o'?
-      changingChoice[1] = parseInt(event.target.value, 10):
-      changingChoice[3] = parseInt(event.target.value, 10);
-    this.setState({choice: changingChoice});
-  }
-
   render() {
     const {side, arr, group} = this.props;
 

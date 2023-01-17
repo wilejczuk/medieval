@@ -4,7 +4,7 @@
 }
 
 .obv-drop {
-  padding: 20px;
+  padding: 10px 0px 10px 20px;
   display: grid;
   grid-template-columns: 90px 1fr;
   margin-bottom: auto;
@@ -21,10 +21,6 @@
   padding: 20px 0px 20px 20px;
 }
 
-.hidden{
-  display: none;
-}
-
 .rounded {
   border-radius: 50%;
   box-shadow: 2px 2px 2px #999999;
@@ -34,6 +30,7 @@
 .pseudo-text {
   background: url('../../../public/text.png') no-repeat center;
   height: 100px;
+  margin-top: 10px;
 }
 
 .paddington {

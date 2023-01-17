@@ -25,6 +25,10 @@ export default class InternalService {
     return await axios.get(`${this._apiBase}stamps`);
   }
 
+  async getType(params) {
+    return await axios.get(`${this._apiBase}type`, {params: params});
+  }
+
   async getSomeStamps(params) {
     return await axios.get(`${this._apiBase}parametrizedStamps`, {params: params});
   }

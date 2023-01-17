@@ -27,3 +27,11 @@
   grid-gap: 30px;
   width: 95%
 }
+
+.pad-left {
+  padding-left: 40px;
+}
+
+.quantity {
+  font-size: 10px;
+}

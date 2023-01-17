@@ -14,7 +14,7 @@ import PrivateRoute from "../route-guard";
 import AppHeader from "../app-header";
 import Map from "../map";
 import SearchPanel from '../search-panel';
-import SearchBand from '../search-panel/search-band';
+import Type from '../type';
 
 export default class App extends Component {
   token = localStorage.getItem("token");
@@ -29,6 +29,11 @@ export default class App extends Component {
       return <Stamps {...{...props, match: {params}} } />
     }
 
+    const TypesWrapper = (props) => {
+      const params = useParams();
+      return <Type {...{...props, match: {params}} } />
+    }
+
     return (
       <Router>
       <AppHeader />
@@ -40,16 +45,9 @@ export default class App extends Component {
             </div>
           } />
 
-          <Route path="/test" element={
-            <div className='selection-interface'>
-              <div className="obv-drop">
-                <h5>Obverse |</h5>
-                <SearchBand side="obv" />
-              </div>
-              <div className="obv-drop">
-                <h5>Reverse |</h5>
-                <SearchBand side="rev" />
-              </div>
+          <Route path="/type/:o/:r" element={
+            <div>
+              <TypesWrapper />
             </div>
           } />
 
