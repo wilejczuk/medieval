@@ -1,7 +1,5 @@
 import React, { Component }  from 'react';
 import InternalService from '../../services/internal-api';
-import axios from 'axios';
-import { setAuthToken } from '../../helpers/set-auth-token';
 import './personalia-new.css';
 
 import LogOut from '../log-out'

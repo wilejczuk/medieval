@@ -2,3 +2,10 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
 }
+
+.obv-drop {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  margin-bottom: auto;
+}

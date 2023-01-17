@@ -3,6 +3,7 @@ import axios from 'axios';
 export default class InternalService {
 
   _apiBase = 'http://localhost:3000/';
+  _clientBase = 'http://localhost:3001/';
   symbolsEnum = ['а', 'б', 'в', 'г', 'д', 'ѣ', 'ѧ'];
 
   async getAuthentication(url, username, password) {
@@ -22,6 +23,10 @@ export default class InternalService {
 
   async getStamps() {
     return await axios.get(`${this._apiBase}stamps`);
+  }
+
+  async getSomeStamps(params) {
+    return await axios.get(`${this._apiBase}parametrizedStamps`, {params: params});
   }
 
   async getDictionaries() {

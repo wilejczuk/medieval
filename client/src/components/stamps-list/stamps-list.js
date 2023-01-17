@@ -1,7 +1,6 @@
 import React, { Component }  from 'react';
+
 import InternalService from '../../services/internal-api';
-import axios from 'axios';
-import { setAuthToken } from '../../helpers/set-auth-token';
 import './stamps-list.css';
 
 export default class Stamps extends Component {
@@ -13,12 +12,14 @@ export default class Stamps extends Component {
   };
 
   componentDidMount() {
-    this.stampsData.getStamps()
+    let searchParams = this.props.match.params; // Example: [2,1,1,2]
+    console.log(searchParams);
+    this.stampsData.getSomeStamps([searchParams["o"],searchParams["od"],
+                                  searchParams["r"],searchParams["rd"]])
       .then((body) => {
         this.setState({
           stampsList: body.data,
         });
-        console.log(body.data);
       });
   }
 
@@ -29,8 +30,8 @@ export default class Stamps extends Component {
       return (
         <div key={id}>
           <div>
-            <img src={obvPath} height="100" />
-            <img src={revPath} height="100" />
+            <img src={obvPath} height="100" alt="Obverse" />
+            <img src={revPath} height="100" alt="Reverse" />
           </div>
           <div className="top-add">
             <div>{obverse} <br /> {reverse}</div>
@@ -47,6 +48,15 @@ export default class Stamps extends Component {
     if (!stampsList) {
       return (
         <h3>List of stamps is empty.</h3>
+      )
+    }
+
+    if (stampsList.length === 0) {
+      return (
+        <div>
+          <h4>Found no records corresponding to the search criteria. </h4>
+          <p>Please try again.</p>
+        </div>
       )
     }
 

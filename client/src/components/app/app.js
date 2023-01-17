@@ -3,7 +3,7 @@ import { setAuthToken } from '../../helpers/set-auth-token';
 import './app.css';
 
 import {
-  BrowserRouter as Router, Routes, Route, Link
+  BrowserRouter as Router, Routes, Route, Link, useParams
 } from "react-router-dom";
 
 import LoginForm from '../login-form';
@@ -14,6 +14,7 @@ import PrivateRoute from "../route-guard";
 import AppHeader from "../app-header";
 import Map from "../map";
 import SearchPanel from '../search-panel';
+import SearchBand from '../search-panel/search-band';
 
 export default class App extends Component {
   token = localStorage.getItem("token");
@@ -22,6 +23,12 @@ export default class App extends Component {
   }
 
   render() {
+
+    const StampsWrapper = (props) => {
+      const params = useParams();
+      return <Stamps {...{...props, match: {params}} } />
+    }
+
     return (
       <Router>
       <AppHeader />
@@ -33,12 +40,26 @@ export default class App extends Component {
             </div>
           } />
 
-          <Route path="/search" element={
+          <Route path="/test" element={
             <div className='selection-interface'>
-              <SearchPanel />
-              <Stamps />
+              <div className="obv-drop">
+                <h5>Obverse |</h5>
+                <SearchBand side="obv" />
+              </div>
+              <div className="obv-drop">
+                <h5>Reverse |</h5>
+                <SearchBand side="rev" />
+              </div>
             </div>
           } />
+
+          <Route path="/search/:o/:od/:r/:rd" element={
+            <div className='selection-interface'>
+              <SearchPanel />
+              <StampsWrapper />
+            </div>
+          } />
+
           <Route exact path="/personalia/add" element = {
             <PrivateRoute>
               <PersonaliaNew />

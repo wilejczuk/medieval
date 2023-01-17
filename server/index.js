@@ -392,6 +392,90 @@ app.get('/stamps',
             );
 });
 
+function getDBIndex(group) {
+  let index;
+  switch (group) {
+    case 'saints':
+      index = 1;// Святой
+      break;
+    case 'crosses':
+      index = 2;// Крест
+      break;
+    case 'signs':
+      index = 3;// Знак
+      break;
+    case 'letters':
+      index = 4;// Буква
+      break;
+    case 'text':
+      index = 0;// Текст
+      break;
+    case '0':
+      // Другое
+      break;
+  }
+  return index;
+}
+
+app.get('/parametrizedStamps',
+        (req, res, next) => {
+            console.log(req.query);
+
+            let condition1Exists = "", condition3Exists = "";
+            let condition1OppositeExists = "", condition3OppositeExists = "";
+
+            if (req.query['1']!='null') {
+                condition1Exists = `and ${req.query['0']}1.id=${req.query['1']}`;
+                condition1OppositeExists = `and ${req.query['0']}2.id=${req.query['1']}`;
+            };
+            if (req.query['3']!='null') {
+              condition3Exists = `and ${req.query['2']}2.id=${req.query['3']}`;
+              condition3OppositeExists = `and ${req.query['2']}1.id=${req.query['3']}`;
+            };
+
+            let searchString =
+            `SELECT DISTINCT tp.id, st1.id obv, st2.id rev,
+                  CASE
+                      WHEN tp.obvImageGroup = 0 THEN tp.obvText
+                  	WHEN tp.obvImageGroup = 1 THEN CONCAT(saints1.name, ' ', saints1.epithet)
+                  	WHEN tp.obvImageGroup = 2 THEN crosses1.name
+                      WHEN tp.obvImageGroup = 3 THEN 'Ducal sign'
+                      ELSE null
+                  END as obverse,
+                  CASE
+                      WHEN tp.revImageGroup = 0 THEN tp.revText
+                  	WHEN tp.revImageGroup = 1 THEN CONCAT(saints2.name, ' ', saints2.epithet)
+                  	WHEN tp.revImageGroup = 2 THEN crosses2.name
+                      WHEN tp.revImageGroup = 3 THEN 'Ducal sign'
+                      ELSE null
+                  END as reverse
+                  from topos.types tp
+                  inner join topos.stamps st1 on st1.idType = tp.id
+                  inner join topos.stamps st2 on st2.idType = tp.id
+                  left join topos.saints saints1 on saints1.id = tp.obvImageId
+                  left join topos.saints saints2 on saints2.id = tp.revImageId
+                  left join topos.signs signs1 on signs1.id = tp.obvImageId
+                  left join topos.signs signs2 on signs2.id = tp.revImageId
+                  left join topos.crosses crosses1 on crosses1.id = tp.obvImageId
+                  left join topos.crosses crosses2 on crosses2.id = tp.revImageId
+                  where st1.isObverse and st1.id!=st2.id
+                  and ((
+                      tp.obvImageGroup = ${getDBIndex(req.query['0'])} ${condition1Exists}
+                      and tp.revImageGroup = ${getDBIndex(req.query['2'])} ${condition3Exists}
+                    ) or (
+                      tp.revImageGroup = ${getDBIndex(req.query['0'])} ${condition1OppositeExists}
+                      and tp.obvImageGroup = ${getDBIndex(req.query['2'])} ${condition3OppositeExists}
+                    )
+                  )`;
+                  console.log(searchString);
+            connection.query(searchString,
+                    function (error, results) {
+                      if (error) console.log(error);
+                      else return res.json (results);
+                    }
+            );
+});
+
 app.get('/types', isAuth, (req, res, next) => {
     let saints = [];
     let types = [];
