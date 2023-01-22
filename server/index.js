@@ -481,12 +481,29 @@ app.get('/parametrizedStamps',
             );
 });
 
+app.get('/specimensGeo',
+        (req, res, next) => {
+            let searchString =
+            `select idObv, idRev, geo
+            from topos.specimens
+            where geo is not null`;
+
+            connection.query(searchString,
+                    function (error, results) {
+                      if (error) console.log(error);
+                      else return res.json (results);
+                    }
+            );
+});
+
+
 app.get('/type',
         (req, res, next) => {
             console.log(req.query);
 
             let searchString =
-                    `select sps.id, sps.idObv, sps.idRev, sps.imgType, magna.obverse, magna.reverse
+                    `select s.*, pub.name, pub.year, ps.page, ps.number from
+                     (select sps.*, magna.obverse, magna.reverse
                       from topos.specimens sps
                       inner join (SELECT DISTINCT tp.id, st1.id obv, st2.id rev,
                           CASE
@@ -514,7 +531,9 @@ app.get('/type',
                           left join topos.crosses crosses2 on crosses2.id = tp.revImageId
                           where st1.isObverse and st1.id!=st2.id
                         ) magna on magna.obv = sps.idObv and magna.rev = sps.idRev
-                        where sps.idObv=${req.query['0']} and sps.idRev=${req.query['1']}`;
+                        where sps.idObv=${req.query['0']} and sps.idRev=${req.query['1']}) s
+                              left join topos.publicationSpecimen ps on ps.idSpecimen = s.id
+                              left join topos.publications pub on pub.id = ps.idPublication`;
                   console.log(searchString);
             connection.query(searchString,
                     function (error, results) {

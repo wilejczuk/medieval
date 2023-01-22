@@ -12,7 +12,7 @@ import Stamps from '../stamps-list';
 import PersonaliaNew from '../personalia-new';
 import PrivateRoute from "../route-guard";
 import AppHeader from "../app-header";
-import Map from "../map";
+import MapComponent from "../map";
 import SearchPanel from '../search-panel';
 import Type from '../type';
 
@@ -41,7 +41,7 @@ export default class App extends Component {
           <Route path="/" element={
             <div className='selection-interface'>
               <SearchPanel />
-              <Map />
+              <MapComponent />
             </div>
           } />
 

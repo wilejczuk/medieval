@@ -23,7 +23,7 @@ export default class Stamps extends Component {
       });
   }
 
-  renderItems(arr, signs) {
+  renderItems(arr) {
     return arr.map(({id, obverse, reverse, obv, rev, cnt}) => {
       const obvPath = `${this.stampsData._apiBase}/stamps/${obv}.png`;
       const revPath = `${this.stampsData._apiBase}/stamps/${rev}.png`;
@@ -64,6 +64,7 @@ export default class Stamps extends Component {
     }
 
     const items = this.renderItems(stampsList);
+    console.log(items);
 
     return (
       <div className="flex-header">

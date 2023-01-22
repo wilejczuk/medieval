@@ -25,6 +25,14 @@ export default class InternalService {
     return await axios.get(`${this._apiBase}stamps`);
   }
 
+  async getLocations() {
+    return await axios.get(`${this._apiBase}specimensGeo`);
+  }
+
+  async getCoordinates(address) {
+    return await axios.get(`https://geocode.maps.co/search?q="${address}"`);
+  }
+
   async getType(params) {
     return await axios.get(`${this._apiBase}type`, {params: params});
   }

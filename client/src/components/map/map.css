@@ -3,3 +3,10 @@
   margin-right: auto;
   margin-bottom: auto;
 }
+
+.leaflet-container {
+  height: 80vh;
+  width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+}
