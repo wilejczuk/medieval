@@ -15,6 +15,7 @@
 
 .items {
   display: flex;
+  flex-wrap: wrap;
 }
 
 .stamp-overview {

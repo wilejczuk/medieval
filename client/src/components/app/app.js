@@ -15,6 +15,7 @@ import AppHeader from "../app-header";
 import MapComponent from "../map";
 import SearchPanel from '../search-panel';
 import Type from '../type';
+import Intro from '../intro';
 
 export default class App extends Component {
   token = localStorage.getItem("token");
@@ -40,7 +41,7 @@ export default class App extends Component {
         <Routes>
           <Route path="/" element={
             <div className='selection-interface'>
-              <SearchPanel />
+              <Intro />
               <MapComponent />
             </div>
           } />
@@ -48,6 +49,13 @@ export default class App extends Component {
           <Route path="/type/:o/:r" element={
             <div>
               <TypesWrapper />
+            </div>
+          } />
+
+          <Route path="/search" element={
+            <div className='selection-interface'>
+              <SearchPanel />
+              <StampsWrapper />
             </div>
           } />
 

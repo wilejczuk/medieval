@@ -37,13 +37,14 @@ export default class Type extends Component {
 
     return unpackedReferences.map(({id, imgType, refs, geo, weight, maxDiameter}) => {
         const path = `${this.stampsData._apiBase}specimens/${id}.${imgType}`;
+        const uniqueKey = `specimen${id}`;
         let params = '';
         if (geo) params = geo;
         if (weight) params += `. Weight: ${weight} g`;
         if (maxDiameter) params += `. Diameter: ${maxDiameter} mm`;
 
         return (
-          <div key={id} className="items-pad">
+          <div key={uniqueKey} className="items-pad">
             <img src={path} height="150" alt="Specimen" />
             <div className="paddington">
               {params}

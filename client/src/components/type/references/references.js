@@ -7,8 +7,9 @@ export default class References extends Component {
     return arr.map(({name, year, page, number}) => {
         if (!name) return;
 
+        const uniqueKey = `${year}${page}${number}`;
         return (
-          <div className="paddington">
+          <div key={uniqueKey} className="paddington">
             <i>{year}</i> <span className="date">{name}</span> С. {page}, № {number}.
           </div>
         );

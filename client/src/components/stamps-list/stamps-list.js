@@ -1,4 +1,5 @@
 import React, { Component }  from 'react';
+import SearchStatus from '../search-panel/search-status';
 
 import InternalService from '../../services/internal-api';
 import './stamps-list.css';
@@ -12,24 +13,35 @@ export default class Stamps extends Component {
   };
 
   componentDidMount() {
-    let searchParams = this.props.match.params; // Example: [2,1,1,2]
-    this.stampsData.getSomeStamps([searchParams["o"],searchParams["od"],
-                                  searchParams["r"],searchParams["rd"]])
-      .then((body) => {
-        console.log(body.data);
-        this.setState({
-          stampsList: body.data,
+    let searchParams = this.props.match.params;
+
+    if (searchParams["o"])
+      this.stampsData.getSomeStamps([searchParams["o"],searchParams["od"],
+                                    searchParams["r"],searchParams["rd"]])
+        .then((body) => {
+          this.setState({
+            stampsList: body.data,
+          });
         });
-      });
+    else {
+      console.log ("no params");
+      this.stampsData.getStamps()
+        .then((body) => {
+          this.setState({
+            stampsList: body.data,
+          });
+        });
+    }
   }
 
   renderItems(arr) {
-    return arr.map(({id, obverse, reverse, obv, rev, cnt}) => {
+    return arr.map(({obverse, reverse, obv, rev, cnt}) => {
       const obvPath = `${this.stampsData._apiBase}/stamps/${obv}.png`;
       const revPath = `${this.stampsData._apiBase}/stamps/${rev}.png`;
       const specimensPath = `${this.stampsData._clientBase}type/${obv}/${rev}`;
+      const uniqueKey = `${obv}-${rev}`;
       return (
-        <div key={id}>
+        <div key={uniqueKey}>
           <div>
             <a href={specimensPath}>
               <img src={obvPath} height="100" alt="Obverse" />
@@ -47,6 +59,7 @@ export default class Stamps extends Component {
   render() {
 
     const { stampsList } = this.state;
+    let searchParams = this.props.match.params;
 
     if (!stampsList) {
       return (
@@ -57,6 +70,7 @@ export default class Stamps extends Component {
     if (stampsList.length === 0) {
       return (
         <div className="pad-left">
+          <SearchStatus selection={searchParams} />
           <h4>Found no records corresponding to the search criteria. </h4>
           <p>Please try again.</p>
         </div>
@@ -64,10 +78,10 @@ export default class Stamps extends Component {
     }
 
     const items = this.renderItems(stampsList);
-    console.log(items);
 
     return (
       <div className="flex-header">
+        <SearchStatus selection={searchParams} />
         {items}
       </div>
     )

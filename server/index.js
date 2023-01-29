@@ -252,6 +252,28 @@ app.get('/contribute', isAuth, (req, res, next) => {
     });
 });
 
+app.get('/selectSaint', (req, res, next) => {
+    connection.query(`Select * from saints where id = ${req.query['0']}`, function (error, results) {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            return res.json(`${results[0].name} (${results[0].epithet})`);
+        }
+    });
+});
+
+app.get('/selectCross', (req, res, next) => {
+    connection.query(`Select * from crosses where id = ${req.query['0']}`, function (error, results) {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            return res.json(results[0].name);
+        }
+    });
+});
+
 app.get('/selectDictionaries', (req, res, next) => {
     let saints = [];
     let signs = [];
@@ -360,31 +382,35 @@ app.get('/personalia-with-saints', (req, res, next) => {
 
 app.get('/stamps',
         (req, res, next) => {
-            connection.query(`SELECT DISTINCT tp.id, st1.id obv, st2.id rev,
+            connection.query(`select magna.obv, magna.rev, magna.obverse, magna.reverse, count(sps.id) cnt
+from (SELECT DISTINCT tp.id, st1.id obv, st2.id rev,
                   CASE
                       WHEN tp.obvImageGroup = 0 THEN tp.obvText
-                  	WHEN tp.obvImageGroup = 1 THEN CONCAT(sn1.name, ' ', sn1.epithet)
-                  	WHEN tp.obvImageGroup = 2 THEN c1.name
+                  	WHEN tp.obvImageGroup = 1 THEN CONCAT(saints1.name, ' ', saints1.epithet)
+                  	WHEN tp.obvImageGroup = 2 THEN crosses1.name
                       WHEN tp.obvImageGroup = 3 THEN 'Ducal sign'
                       ELSE null
                   END as obverse,
                   CASE
                       WHEN tp.revImageGroup = 0 THEN tp.revText
-                  	WHEN tp.revImageGroup = 1 THEN CONCAT(sn2.name, ' ', sn2.epithet)
-                  	WHEN tp.revImageGroup = 2 THEN c2.name
+                  	WHEN tp.revImageGroup = 1 THEN CONCAT(saints2.name, ' ', saints2.epithet)
+                  	WHEN tp.revImageGroup = 2 THEN crosses2.name
                       WHEN tp.revImageGroup = 3 THEN 'Ducal sign'
                       ELSE null
                   END as reverse
                   from topos.types tp
                   inner join topos.stamps st1 on st1.idType = tp.id
                   inner join topos.stamps st2 on st2.idType = tp.id
-                  left join topos.saints sn1 on sn1.id = tp.obvImageId
-                  left join topos.saints sn2 on sn2.id = tp.revImageId
-                  left join topos.signs sg1 on sg1.id = tp.obvImageId
-                  left join topos.signs sg2 on sg2.id = tp.revImageId
-                  left join topos.crosses c1 on c1.id = tp.obvImageId
-                  left join topos.crosses c2 on c2.id = tp.revImageId
-                  where st1.isObverse and st1.id!=st2.id`,
+                  left join topos.saints saints1 on saints1.id = tp.obvImageId
+                  left join topos.saints saints2 on saints2.id = tp.revImageId
+                  left join topos.signs signs1 on signs1.id = tp.obvImageId
+                  left join topos.signs signs2 on signs2.id = tp.revImageId
+                  left join topos.crosses crosses1 on crosses1.id = tp.obvImageId
+                  left join topos.crosses crosses2 on crosses2.id = tp.revImageId
+                  where st1.isObverse and st1.id!=st2.id
+                  ) magna
+                  inner join topos.specimens sps on magna.obv = sps.idObv and magna.rev = sps.idRev
+                  group by sps.idObv, sps.idRev`,
                     function (error, results) {
                       if (error) console.log(error);
                       else return res.json (results);
@@ -434,10 +460,10 @@ app.get('/parametrizedStamps',
             };
 
             let searchString =
-            `select sps.idObv obv, sps.idRev rev, magna.obverse, magna.reverse, count(sps.id) cnt
+            `select magna.*, count(sps.id) cnt
             from topos.specimens sps
             inner join (
-                SELECT DISTINCT tp.id, st1.id obv, st2.id rev,
+                SELECT DISTINCT tp.id, tp.obvImageGroup, tp.revImageGroup, st1.id obv, st2.id rev,
                       CASE
                           WHEN tp.obvImageGroup = 0 THEN tp.obvText
                       	WHEN tp.obvImageGroup = 1 THEN CONCAT(saints1.name, ' ', saints1.epithet)
@@ -484,7 +510,7 @@ app.get('/parametrizedStamps',
 app.get('/specimensGeo',
         (req, res, next) => {
             let searchString =
-            `select idObv, idRev, geo
+            `select id, imgType, idObv, idRev, geo
             from topos.specimens
             where geo is not null`;
 

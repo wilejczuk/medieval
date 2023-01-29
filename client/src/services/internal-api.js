@@ -44,4 +44,12 @@ export default class InternalService {
   async getDictionaries() {
     return await axios.get(`${this._apiBase}selectDictionaries`);
   }
+
+  async getSaint(params) {
+    return await axios.get(`${this._apiBase}selectSaint`, {params: params});
+  }
+
+  async getCross(params) {
+    return await axios.get(`${this._apiBase}selectCross`, {params: params});
+  }
 }
