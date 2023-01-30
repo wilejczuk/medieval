@@ -2,7 +2,7 @@ import React, { Component }  from 'react';
 import InternalService from '../../services/internal-api';
 import './personalia-new.css';
 
-import LogOut from '../log-out'
+import LogOut from '../log-out';
 
 export default class PersonaliaNew extends Component {
 

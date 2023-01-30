@@ -16,8 +16,8 @@ export default class SearchDetails extends Component {
       return (
         <div className="form-check radio-item paddington" key={uniqueKey}
                         onChange={() => this.props.onChange(group, id)}>
-          <input className="form-check-input" type="radio" name={uniqueGroup} value={id} />
           <label className="form-check-label">
+            <input className="form-check-input" type="radio" name={uniqueGroup} value={id} />
             {contents}
           </label>
         </div>

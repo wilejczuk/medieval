@@ -19,11 +19,16 @@ export default class MapComponent extends Component {
     this.geoCoordinates.getLocations()
       .then((body) => {
         let allGeo = [];
-        body.data.map(({geo, idObv, idRev, id, imgType}) => {
-          this.geoCoordinates.getCoordinates(geo).then((geocode) => {
-            allGeo.push({idObv, idRev, id, imgType, lat:geocode.data[0].lat, lon:geocode.data[0].lon});
-          }).then(()=>this.setState({geos: allGeo}));
+        body.data.map(({geo, idObv, idRev, id, imgType, latitude, longitude}) => {
+          if (latitude) allGeo.push({idObv, idRev, id, imgType, lat:latitude, lon:longitude});
+          else {
+            this.geoCoordinates.getCoordinates(geo).then((geocode) => {
+              allGeo.push({idObv, idRev, id, imgType, lat:geocode.data[0].lat, lon:geocode.data[0].lon});
+              this.geoCoordinates.setCoordinates([id, geocode.data[0].lat, geocode.data[0].lon]);
+            });
+          }
         });
+        this.setState({geos: allGeo});
       });
   };
 
@@ -35,7 +40,6 @@ export default class MapComponent extends Component {
       const uniqueKey = `spec_${el.id}`
       return (<MapMarker key={uniqueKey} parameters={el} />)
     });
-    console.log(coordinates);
 
     return (
       <MapContainer center={[this.state.lat, this.state.lng]} zoom={this.state.zoom} scrollWheelZoom={false}>

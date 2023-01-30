@@ -510,7 +510,7 @@ app.get('/parametrizedStamps',
 app.get('/specimensGeo',
         (req, res, next) => {
             let searchString =
-            `select id, imgType, idObv, idRev, geo
+            `select id, imgType, idObv, idRev, geo, latitude, longitude
             from topos.specimens
             where geo is not null`;
 
@@ -522,6 +522,19 @@ app.get('/specimensGeo',
             );
 });
 
+app.get('/specimenCoordinates',
+        (req, res, next) => {
+            let searchString =
+            `update topos.specimens set latitude=${req.query['1']}, longitude=${req.query['2']}
+              where id=${req.query['0']}`;
+
+            connection.query(searchString,
+                    function (error, results) {
+                      if (error) console.log(error);
+                      else return res.json (results);
+                    }
+            );
+});
 
 app.get('/type',
         (req, res, next) => {

@@ -33,6 +33,10 @@ export default class InternalService {
     return await axios.get(`https://geocode.maps.co/search?q="${address}"`);
   }
 
+  async setCoordinates(params) {
+    return await axios.get(`${this._apiBase}specimenCoordinates`, {params: params});
+  }
+
   async getType(params) {
     return await axios.get(`${this._apiBase}type`, {params: params});
   }
