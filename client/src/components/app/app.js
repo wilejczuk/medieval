@@ -15,6 +15,7 @@ import AppHeader from "../app-header";
 import MapComponent from "../map";
 import SearchPanel from '../search-panel';
 import Type from '../type';
+import AddType from '../type/add-type';
 import Intro from '../intro';
 
 export default class App extends Component {
@@ -35,6 +36,11 @@ export default class App extends Component {
       return <Type {...{...props, match: {params}} } />
     }
 
+    const AddTypesWrapper = (props) => {
+      const params = useParams();
+      return <AddType {...{...props, match: {params}} } />
+    }
+
     return (
       <Router>
       <AppHeader />
@@ -49,6 +55,12 @@ export default class App extends Component {
           <Route path="/type/:o/:r" element={
             <div>
               <TypesWrapper />
+            </div>
+          } />
+
+          <Route path="/type/add/:o/:r/:ot/:oi/:rt/:ri" element={
+            <div>
+              <AddTypesWrapper />
             </div>
           } />
 

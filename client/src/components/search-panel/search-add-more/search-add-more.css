@@ -1,0 +1,12 @@
+.padding-left {
+  padding-left: 20px;
+}
+
+.grid-element {
+  grid-column: span 2;
+}
+
+.greyish {
+  background: #434343;
+  font-family: 'Courier';
+}

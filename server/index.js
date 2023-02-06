@@ -195,7 +195,7 @@ app.post('/loginNew',
         try {
           if (err || !user) {
             const error = new Error('An error occurred.');
-
+            // express 401/403 how to return
             return next(error);
           }
 
@@ -205,9 +205,7 @@ app.post('/loginNew',
             async (error) => {
               if (error) return next(error);
               const body = { id: user.id, salt: user.salt };
-              console.log(user);
               const token = jwt.sign({ user: body }, 'TOP_SECRET');
-              console.log(token);
               return res.json({ token });
             }
           );
@@ -522,6 +520,21 @@ app.get('/specimensGeo',
             );
 });
 
+app.get('/literature',
+        (req, res, next) => {
+            let searchString =
+            `select *
+            from topos.publications pub
+            order by pub.year`;
+
+            connection.query(searchString,
+                    function (error, results) {
+                      if (error) console.log(error);
+                      else return res.json (results);
+                    }
+            );
+});
+
 app.get('/specimenCoordinates',
         (req, res, next) => {
             let searchString =
@@ -658,6 +671,114 @@ app.post('/addSign', (req, res, next) => {
     });
     res.redirect('/contribute');
 });
+
+app.post('/specimen',
+    (req, res, next) => {
+       var form = new formidable.IncomingForm();
+       form.parse(req, function(err, fields, files) {
+         console.log(fields);
+           const {size, weight, findingSpot, findingSpotComments, publication, idObv, idRev, page, number} = fields;
+           let ext = files.picture.originalFilename.split('.').pop();
+           connection.query(`Insert into specimens(idObv, idRev, geo, geoComment, weight, maxDiameter, imgType)
+                values(?,?,?,?,?,?,?)`, [idObv, idRev, findingSpot, findingSpotComments, weight, size, ext],
+                   function (error, results) {
+                     if (error) console.log(error);
+                     else {
+                       fs.rename(files.picture.filepath, `./public/specimens/${results.insertId}.${ext}`, (err) => { if (err) throw err;});
+                       connection.query(`Insert into publicationSpecimen(idSpecimen, idPublication, page, number)
+                            values(?,?,?,?)`, [results.insertId, parseInt(publication), page, number],
+                               function (error, results) {
+                                 if (error) console.log(error);
+                                 else return res.json (results);
+                               }
+                       );
+                     }
+                   }
+           );
+      });
+ });
+
+async function branchCases (typeId, err, fields, files) {
+    const {obvGroup, revGroup, obvIndex, revIndex,
+      obvStamp, revStamp, obvDescription, revDescription, orient,
+      size, weight, findingSpot, findingSpotComments, publication, page, number} = fields;
+
+    let extObv = files.obvStamp.originalFilename.split('.').pop();
+    let extRev = files.revStamp.originalFilename.split('.').pop();
+    let indObv, indRev;
+
+    connection.query(`Insert into stamps (idType, isObverse, description, isCoDirectional, imgType)
+        values(?,?,?,?,?)`, [typeId, 1, obvDescription, orient==="↑↑", extObv],
+      function (error, results, fields) {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            indObv = results.insertId;
+            fs.rename(files.obvStamp.filepath, `./public/stamps/${results.insertId}.${extObv}`, (err) => { if (err) throw err;});
+        }
+    });
+
+    connection.query(`Insert into stamps (idType, isObverse, description, imgType)
+        values(?,?,?,?)`, [typeId, 0, revDescription, extRev],
+      function (error, results, fields) {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            indRev = results.insertId;
+            fs.rename(files.revStamp.filepath, `./public/stamps/${results.insertId}.${extRev}`, (err) => { if (err) throw err;});
+
+            let ext = files.picture.originalFilename.split('.').pop();
+
+            connection.query(`Insert into specimens(idObv, idRev, geo, geoComment, weight, maxDiameter, imgType)
+                 values(?,?,?,?,?,?,?)`, [indObv, indRev, findingSpot, findingSpotComments, weight, size, ext],
+                    function (error, results) {
+                      if (error) console.log(error);
+                      else {
+                        fs.rename(files.picture.filepath, `./public/specimens/${results.insertId}.${ext}`, (err) => { if (err) throw err;});
+
+                        connection.query(`Insert into publicationSpecimen(idSpecimen, idPublication, page, number)
+                             values(?,?,?,?)`, [results.insertId, parseInt(publication), page, number],
+                                function (error, results) {
+                                  if (error) console.log(error);
+                                  else {
+                                    console.log (`все сделали, будем вращать из branchCases`);
+                                    console.log ([indObv, indRev]);
+                                    return [indObv, indRev];
+                                  }
+                                }
+                        );
+                      }
+                    }
+            );
+        }
+    });
+}
+
+app.post('/typeAndSpecimen',
+     (req, res, next) => {
+        var form = new formidable.IncomingForm();
+        form.parse(req, function(err, fields, files) {
+          console.log(fields);
+          const {obvGroup, revGroup, obvIndex, revIndex} = fields;
+
+          if (fields.revGroup) {
+            connection.query(`Insert into types(obvImageGroup, obvImageId, revImageGroup, revImageId)
+                values(?,?,?,?)`, [getDBIndex(obvGroup), obvIndex, getDBIndex(revGroup), revIndex],
+              function (error, results) {
+                if (error) {
+                    console.log(error);
+                }
+                else branchCases (results.insertId, err, fields, files).then(response => {
+                  return res.json(response)});
+            });
+          }
+          else
+            branchCases (obvGroup, err, fields, files).then(response => {
+              return res.json(response)});
+       });
+  });
 
 app.post('/addPersona', (req, res, next) => {
     connection.query(`Insert into personalia(name, idPatron, idFather, dateBirth, datePower, dateDeath,

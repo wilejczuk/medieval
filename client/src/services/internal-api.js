@@ -29,6 +29,10 @@ export default class InternalService {
     return await axios.get(`${this._apiBase}specimensGeo`);
   }
 
+  async getLiterature() {
+    return await axios.get(`${this._apiBase}literature`);
+  }
+
   async getCoordinates(address) {
     return await axios.get(`https://geocode.maps.co/search?q="${address}"`);
   }
@@ -55,5 +59,66 @@ export default class InternalService {
 
   async getCross(params) {
     return await axios.get(`${this._apiBase}selectCross`, {params: params});
+  }
+
+  async addSpecimen(picture, size, weight, findingSpot, findingSpotComments, publication, idObv, idRev, page, number) {
+    let formData = new FormData();
+    formData.append("picture", picture);
+    if (size!='') formData.append("size", size);
+    if (weight!='') formData.append("weight", weight);
+    if (findingSpot!='') formData.append("findingSpot", findingSpot);
+    if (findingSpotComments!='') formData.append("findingSpotComments", findingSpotComments);
+    formData.append("idObv", idObv);
+    formData.append("idRev", idRev);
+    formData.append("publication", publication);
+    formData.append("page", page);
+    formData.append("number", number);
+
+    return await axios.post(`${this._apiBase}specimen`,
+          formData,
+          { headers: {
+                'Content-Type': 'multipart/form-data'
+              }
+          }
+    );
+  }
+
+  async addTypeAndSpecimen (obvGroup, revGroup, obvIndex, revIndex,
+    obvStamp, revStamp, obvDescription, revDescription, orient,
+    picture, size, weight, findingSpot, findingSpotComments, publication, page, number) {
+      let formData = new FormData();
+
+      // Types table
+      formData.append("obvGroup", obvGroup);
+      if (revGroup!='null') formData.append("revGroup", revGroup);
+      if (obvIndex!='null') formData.append("obvIndex", obvIndex);
+      if (revIndex!='null') formData.append("revIndex", revIndex);
+
+      // Stamps table
+      formData.append("obvStamp", obvStamp);
+      formData.append("revStamp", revStamp);
+      if (obvDescription!='') formData.append("obvDescription", obvDescription);
+      if (revDescription!='') formData.append("revDescription", revDescription);
+      if (orient!='') formData.append("orient", orient);
+
+      // Specimens table
+      formData.append("picture", picture);
+      if (size!='') formData.append("size", size);
+      if (weight!='') formData.append("weight", weight);
+      if (findingSpot!='') formData.append("findingSpot", findingSpot);
+      if (findingSpotComments!='') formData.append("findingSpotComments", findingSpotComments);
+
+      // Specimens-Publication table
+      formData.append("publication", publication);
+      formData.append("page", page);
+      formData.append("number", number);
+
+      return await axios.post(`${this._apiBase}typeAndSpecimen`,
+            formData,
+            { headers: {
+                  'Content-Type': 'multipart/form-data'
+                }
+            }
+      );
   }
 }

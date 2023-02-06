@@ -7,18 +7,6 @@ import './intro.css';
 
 export default class Intro extends Component {
 
-  constructor() {
-    super();
-    //setAuthToken(null);
-    //localStorage.removeItem("token");
-  }
-
-  hasJWT() {
-      let flag = false;
-      localStorage.getItem("token") ? flag=true : flag=false
-      return flag;
-  }
-
   renderLoginOrLogout(auth) {
     if (auth) return (<LogOut />);
     else return (
@@ -62,7 +50,7 @@ export default class Intro extends Component {
   }
 
   render() {
-    const needLogin = this.renderLoginOrLogout(this.hasJWT());
+    const needLogin = this.renderLoginOrLogout(localStorage.getItem("token") ? true : false);
 
     return (
       <div className="padding-left">

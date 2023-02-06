@@ -1,5 +1,6 @@
 import React, { Component }  from 'react';
 import SearchStatus from '../search-panel/search-status';
+import SearchAddMore from '../search-panel/search-add-more';
 
 import InternalService from '../../services/internal-api';
 import './stamps-list.css';
@@ -10,25 +11,48 @@ export default class Stamps extends Component {
 
   state = {
     stampsList: null,
+    obv: null,
+    rev: null
   };
+
+  requestDetails (side, group, index) {
+    switch (group) {
+      case "saints":
+        this.stampsData.getSaint([index])
+          .then((body) => {
+            this.setState({[side]: body.data});
+          });
+        break;
+      case "crosses":
+        this.stampsData.getCross([index])
+          .then((body) => {
+            this.setState({[side]: body.data});
+          });
+        break;
+      default:
+    }
+  }
 
   componentDidMount() {
     let searchParams = this.props.match.params;
 
-    if (searchParams["o"])
+    if (searchParams["o"]) {
+      if (searchParams["od"]!='null') this.requestDetails("obv", searchParams["o"], searchParams["od"]);
+      if (searchParams["rd"]!='null') this.requestDetails("rev", searchParams["r"], searchParams["rd"]);
       this.stampsData.getSomeStamps([searchParams["o"],searchParams["od"],
                                     searchParams["r"],searchParams["rd"]])
         .then((body) => {
           this.setState({
-            stampsList: body.data,
+            stampsList: body.data
           });
         });
+    }
     else {
       console.log ("no params");
       this.stampsData.getStamps()
         .then((body) => {
           this.setState({
-            stampsList: body.data,
+            stampsList: body.data
           });
         });
     }
@@ -58,7 +82,7 @@ export default class Stamps extends Component {
 
   render() {
 
-    const { stampsList } = this.state;
+    let { obv, rev, stampsList } = this.state;
     let searchParams = this.props.match.params;
 
     if (!stampsList) {
@@ -67,13 +91,35 @@ export default class Stamps extends Component {
       )
     }
 
+    if (obv===null) obv = searchParams["o"];
+    if (rev===null) rev = searchParams["r"];
+
+    const selection = [obv, rev, stampsList.length];
+    const params = stampsList.length === 0 ? searchParams : stampsList[0].id;
+
+    const addMore = (localStorage.getItem("token") &&
+        !Object.values(searchParams).includes('null') && ('o' in searchParams)) ?
+            (<SearchAddMore selection={selection} queryData={params} />) : null;
+
+    const noneFound = addMore ?
+    (
+      <div className="pad-left">
+        <SearchStatus selection={selection} />
+        <h4>Found no records corresponding to the search criteria. </h4>
+        {addMore}
+      </div>
+    ) :
+    (
+      <div className="pad-left">
+        <SearchStatus selection={selection} />
+        <h4>Found no records corresponding to the search criteria. </h4>
+        <p>Please try again.</p>
+      </div>
+    )
+
     if (stampsList.length === 0) {
       return (
-        <div className="pad-left">
-          <SearchStatus selection={searchParams} />
-          <h4>Found no records corresponding to the search criteria. </h4>
-          <p>Please try again.</p>
-        </div>
+        noneFound
       )
     }
 
@@ -81,8 +127,9 @@ export default class Stamps extends Component {
 
     return (
       <div className="flex-header">
-        <SearchStatus selection={searchParams} />
+        <SearchStatus selection={selection} />
         {items}
+        {addMore}
       </div>
     )
   }

@@ -10,14 +10,26 @@
 }
 
 .items-pad {
-  padding: 0px 20px 20px 0px;
+  padding: 20px 20px 0px 0px;
 }
 
 .items {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, 50%);
 }
 
 .stamp-overview {
   justify-self: center;
+}
+
+.greyish {
+  background: #434343;
+  font-family: 'Courier';
+  color: #00bc8c;
+  cursor: pointer;
+}
+
+h5 {
+    display: inline;
+    width: auto;
 }
