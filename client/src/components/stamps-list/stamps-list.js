@@ -1,6 +1,7 @@
 import React, { Component }  from 'react';
 import SearchStatus from '../search-panel/search-status';
 import SearchAddMore from '../search-panel/search-add-more';
+import SearchPagination from '../search-panel/search-pagination';
 
 import InternalService from '../../services/internal-api';
 import './stamps-list.css';
@@ -11,6 +12,7 @@ export default class Stamps extends Component {
 
   state = {
     stampsList: null,
+    currentPage: 1,
     obv: null,
     rev: null
   };
@@ -26,6 +28,13 @@ export default class Stamps extends Component {
       case "crosses":
         this.stampsData.getCross([index])
           .then((body) => {
+            this.setState({[side]: body.data});
+          });
+        break;
+      case "letters":
+        this.stampsData.getLetter([index])
+          .then((body) => {
+            console.log (body.data)
             this.setState({[side]: body.data});
           });
         break;
@@ -58,6 +67,10 @@ export default class Stamps extends Component {
     }
   }
 
+  setCurrentPage(page) {
+    this.setState({currentPage: page});
+  }
+
   renderItems(arr) {
     return arr.map(({obverse, reverse, obv, rev, cnt}) => {
       const obvPath = `${this.stampsData._apiBase}/stamps/${obv}.png`;
@@ -82,7 +95,7 @@ export default class Stamps extends Component {
 
   render() {
 
-    let { obv, rev, stampsList } = this.state;
+    let { obv, rev, stampsList, currentPage } = this.state;
     let searchParams = this.props.match.params;
 
     if (!stampsList) {
@@ -123,12 +136,24 @@ export default class Stamps extends Component {
       )
     }
 
-    const items = this.renderItems(stampsList);
+    const pageSize = 6;
+    const firstPageIndex = (currentPage - 1) * pageSize;
+    const lastPageIndex = firstPageIndex + pageSize;
+    const pagedList = stampsList.slice(firstPageIndex, lastPageIndex);
+
+    const items = this.renderItems(pagedList);
 
     return (
       <div className="flex-header">
         <SearchStatus selection={selection} />
         {items}
+        <SearchPagination
+          className="pagination-bar grid-element"
+          currentPage={currentPage}
+          totalCount={stampsList.length}
+          pageSize={pageSize}
+          onPageChange={page => this.setCurrentPage(page)}
+        />
         {addMore}
       </div>
     )

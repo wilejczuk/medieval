@@ -89,9 +89,22 @@ export default class Type extends Component {
       )
     }
     const addMore = this.canAdd(localStorage.getItem("token") ? true : false);
-
+    console.log (showType);
     const obvPath = `${this.stampsData._apiBase}/stamps/${showType[0].idObv}.png`;
     const revPath = `${this.stampsData._apiBase}/stamps/${showType[0].idRev}.png`;
+
+    const description = showType[0].obvDescription ? (
+                <div>
+                  <p><b>Obv</b>: {showType[0].obvDescription} </p>
+                  <p><b>Rev</b>: {showType[0].revDescription} </p>
+                </div>
+              ) : null;
+
+    let codirect = null;
+    if (showType[0].codirect!==null) {
+      if (showType[0].codirect===1) codirect = (<div>↑↑</div>);
+      else codirect = (<div>↑↓</div>);
+    }
 
     const items = addNewSpecimen ?
       (<AddSpecimen onAdded={() => this.completeAdd()} defaultValues = {[showType[0].idObv, showType[0].idRev]} />)
@@ -108,10 +121,14 @@ export default class Type extends Component {
     return (
       <div className="main-grid">
         <div className="stamp-overview">
-            <img src={obvPath} height="120" alt="Obverse" />
-            <img src={revPath} height="120" alt="Reverse" />
-            <br />
-            {addMore}
+            <p>
+                <img src={obvPath} height="120" alt="Obverse" />
+                <img src={revPath} height="120" alt="Reverse" />
+                <br />
+                {addMore}
+            </p>
+            {description}
+            {codirect}
         </div>
         <div>
           {itemsHeader}

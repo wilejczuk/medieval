@@ -140,11 +140,11 @@ function userExists(req, res, next) {
 }
 
 /*routes*/
-app.get('/', (req, res, next) => {
+app.get('/', (req, res) => {
     res.render('home')
 });
 
-app.get('/login', (req, res, next) => {
+app.get('/login', (req, res) => {
     res.render('login')
 });
 
@@ -155,26 +155,26 @@ app.get('/logout', (req, res, next) => {
     }); //deletes the user from the session
 });
 
-app.get('/login-success', (req, res, next) => {
+app.get('/login-success', (req, res) => {
     res.render('login-success');
 });
 
-app.get('/login-failure', (req, res, next) => {
+app.get('/login-failure', (req, res) => {
     res.send('Your email or/and password are wrong');
 });
 
-app.get('/register', (req, res, next) => {
+app.get('/register', (req, res) => {
     res.render('register')
 });
 
-app.post('/register', userExists, (req, res, next) => {
+app.post('/register', userExists, (req, res) => {
     console.log(req.body.pw);
     const saltHash = genPassword(req.body.pw);
     console.log(saltHash);
     const salt = saltHash.salt;
     const hash = saltHash.hash;
 
-    connection.query('Insert into users(email,hash,salt,isAdmin) values(?,?,?,0) ', [req.body.uname, hash, salt], function (error, results, fields) {
+    connection.query('Insert into users(email,hash,salt,isAdmin) values(?,?,?,0) ', [req.body.uname, hash, salt], function (error) {
         if (error) {
             console.log(error);
         }
@@ -191,7 +191,7 @@ app.post('/login', passport.authenticate('local', { failureRedirect: '/login-fai
 app.post('/loginNew',
   async (req, res, next) => {
     passport.authenticate('local',
-      async (err, user, info) => {
+      async (err, user) => {
         try {
           if (err || !user) {
             const error = new Error('An error occurred.');
@@ -219,7 +219,7 @@ app.post('/loginNew',
 
 // CMS editor routes (authorized - yes, admin - no)
 
-app.get('/contribute', isAuth, (req, res, next) => {
+app.get('/contribute', isAuth, (req, res) => {
     let saints = [];
     let signs = [];
     let personalia = [];
@@ -250,7 +250,7 @@ app.get('/contribute', isAuth, (req, res, next) => {
     });
 });
 
-app.get('/selectSaint', (req, res, next) => {
+app.get('/selectSaint', (req, res) => {
     connection.query(`Select * from saints where id = ${req.query['0']}`, function (error, results) {
         if (error) {
             console.log(error);
@@ -261,7 +261,7 @@ app.get('/selectSaint', (req, res, next) => {
     });
 });
 
-app.get('/selectCross', (req, res, next) => {
+app.get('/selectCross', (req, res) => {
     connection.query(`Select * from crosses where id = ${req.query['0']}`, function (error, results) {
         if (error) {
             console.log(error);
@@ -272,10 +272,22 @@ app.get('/selectCross', (req, res, next) => {
     });
 });
 
-app.get('/selectDictionaries', (req, res, next) => {
+app.get('/selectLetter', (req, res) => {
+    connection.query(`Select * from letters where id = ${req.query['0']}`, function (error, results) {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            return res.json(results[0].symbol);
+        }
+    });
+});
+
+app.get('/selectDictionaries', (req, res) => {
     let saints = [];
     let signs = [];
     let crosses = [];
+    let letters = [];
     connection.query('Select * from saints', function (error, results) {
         if (error) {
             console.log(error);
@@ -294,7 +306,16 @@ app.get('/selectDictionaries', (req, res, next) => {
                         }
                         else {
                             crosses = results;
-                            return res.json ({ saints: saints, signs: signs, crosses: crosses });
+                            connection.query('Select * from letters', function (error, results) {
+                                if (error) {
+                                    console.log(error);
+                                }
+                                else {
+                                    letters = results;
+                                    return res.json ({ saints: saints, signs: signs,
+                                       crosses: crosses,  letters: letters});
+                                }
+                            });
                         }
                     });
                 }
@@ -303,7 +324,7 @@ app.get('/selectDictionaries', (req, res, next) => {
     });
 });
 
-app.get('/personalia', isAuth, (req, res, next) => {
+app.get('/personalia', isAuth, (req, res) => {
     let saints = [];
     let personalia = [];
     let personSignConnections = [];
@@ -339,7 +360,7 @@ app.get('/personalia', isAuth, (req, res, next) => {
 });
 
 app.get('/personalia-list',
-        (req, res, next) => {
+        (req, res) => {
             connection.query(`Select p.id, p.name, s.name saint,
                   p.birthProximity, p.powerProximity, p.deathProximity,
                   p.dateBirth, p.datePower, p.dateDeath, ps.idSign, sg.type from personalia p
@@ -353,7 +374,7 @@ app.get('/personalia-list',
             );
 });
 
-app.get('/personalia-with-saints', (req, res, next) => {
+app.get('/personalia-with-saints', (req, res) => {
     let saints = [];
     let personalia = [];
     connection.query('Select * from saints', function (error, results) {
@@ -379,34 +400,9 @@ app.get('/personalia-with-saints', (req, res, next) => {
 });
 
 app.get('/stamps',
-        (req, res, next) => {
+        (req, res) => {
             connection.query(`select magna.obv, magna.rev, magna.obverse, magna.reverse, count(sps.id) cnt
-from (SELECT DISTINCT tp.id, st1.id obv, st2.id rev,
-                  CASE
-                      WHEN tp.obvImageGroup = 0 THEN tp.obvText
-                  	WHEN tp.obvImageGroup = 1 THEN CONCAT(saints1.name, ' ', saints1.epithet)
-                  	WHEN tp.obvImageGroup = 2 THEN crosses1.name
-                      WHEN tp.obvImageGroup = 3 THEN 'Ducal sign'
-                      ELSE null
-                  END as obverse,
-                  CASE
-                      WHEN tp.revImageGroup = 0 THEN tp.revText
-                  	WHEN tp.revImageGroup = 1 THEN CONCAT(saints2.name, ' ', saints2.epithet)
-                  	WHEN tp.revImageGroup = 2 THEN crosses2.name
-                      WHEN tp.revImageGroup = 3 THEN 'Ducal sign'
-                      ELSE null
-                  END as reverse
-                  from topos.types tp
-                  inner join topos.stamps st1 on st1.idType = tp.id
-                  inner join topos.stamps st2 on st2.idType = tp.id
-                  left join topos.saints saints1 on saints1.id = tp.obvImageId
-                  left join topos.saints saints2 on saints2.id = tp.revImageId
-                  left join topos.signs signs1 on signs1.id = tp.obvImageId
-                  left join topos.signs signs2 on signs2.id = tp.revImageId
-                  left join topos.crosses crosses1 on crosses1.id = tp.obvImageId
-                  left join topos.crosses crosses2 on crosses2.id = tp.revImageId
-                  where st1.isObverse and st1.id!=st2.id
-                  ) magna
+from (${grandRequest}) magna
                   inner join topos.specimens sps on magna.obv = sps.idObv and magna.rev = sps.idRev
                   group by sps.idObv, sps.idRev`,
                     function (error, results) {
@@ -441,18 +437,49 @@ function getDBIndex(group) {
   return index;
 }
 
+const grandRequest = `SELECT DISTINCT tp.id, tp.obvImageGroup, tp.revImageGroup, st1.id obv, st2.id rev,
+    st1.description obvDescription, st2.description revDescription, st1.isCoDirectional codirect,
+    CASE
+        WHEN tp.obvImageGroup = 0 THEN tp.obvText
+        WHEN tp.obvImageGroup = 1 THEN CONCAT(saints1.name, ' ', saints1.epithet)
+        WHEN tp.obvImageGroup = 2 THEN crosses1.name
+        WHEN tp.obvImageGroup = 3 THEN 'Ducal sign'
+        WHEN tp.obvImageGroup = 4 THEN letters1.symbol
+        ELSE null
+    END as obverse,
+    CASE
+        WHEN tp.revImageGroup = 0 THEN tp.revText
+        WHEN tp.revImageGroup = 1 THEN CONCAT(saints2.name, ' ', saints2.epithet)
+        WHEN tp.revImageGroup = 2 THEN crosses2.name
+        WHEN tp.revImageGroup = 3 THEN 'Ducal sign'
+        WHEN tp.obvImageGroup = 4 THEN letters2.symbol
+        ELSE null
+    END as reverse
+    from topos.types tp
+    inner join topos.stamps st1 on st1.idType = tp.id
+    inner join topos.stamps st2 on st2.idType = tp.id
+    left join topos.saints saints1 on saints1.id = tp.obvImageId
+    left join topos.saints saints2 on saints2.id = tp.revImageId
+    left join topos.signs signs1 on signs1.id = tp.obvImageId
+    left join topos.signs signs2 on signs2.id = tp.revImageId
+    left join topos.crosses crosses1 on crosses1.id = tp.obvImageId
+    left join topos.crosses crosses2 on crosses2.id = tp.revImageId
+    left join topos.letters letters1 on letters1.id = tp.obvImageId
+    left join topos.letters letters2 on letters2.id = tp.revImageId
+    where st1.isObverse and st1.id!=st2.id`;
+
 app.get('/parametrizedStamps',
-        (req, res, next) => {
+        (req, res) => {
             console.log(req.query);
 
             let condition1Exists = "", condition3Exists = "";
             let condition1OppositeExists = "", condition3OppositeExists = "";
 
-            if (req.query['1']!='null') {
+            if (!['null','0'].includes(req.query['1'])) {
                 condition1Exists = `and ${req.query['0']}1.id=${req.query['1']}`;
                 condition1OppositeExists = `and ${req.query['0']}2.id=${req.query['1']}`;
             };
-            if (req.query['3']!='null') {
+            if (!['null','0'].includes(req.query['3'])) {
               condition3Exists = `and ${req.query['2']}2.id=${req.query['3']}`;
               condition3OppositeExists = `and ${req.query['2']}1.id=${req.query['3']}`;
             };
@@ -460,32 +487,7 @@ app.get('/parametrizedStamps',
             let searchString =
             `select magna.*, count(sps.id) cnt
             from topos.specimens sps
-            inner join (
-                SELECT DISTINCT tp.id, tp.obvImageGroup, tp.revImageGroup, st1.id obv, st2.id rev,
-                      CASE
-                          WHEN tp.obvImageGroup = 0 THEN tp.obvText
-                      	WHEN tp.obvImageGroup = 1 THEN CONCAT(saints1.name, ' ', saints1.epithet)
-                      	WHEN tp.obvImageGroup = 2 THEN crosses1.name
-                          WHEN tp.obvImageGroup = 3 THEN 'Ducal sign'
-                          ELSE null
-                      END as obverse,
-                      CASE
-                          WHEN tp.revImageGroup = 0 THEN tp.revText
-                      	WHEN tp.revImageGroup = 1 THEN CONCAT(saints2.name, ' ', saints2.epithet)
-                      	WHEN tp.revImageGroup = 2 THEN crosses2.name
-                          WHEN tp.revImageGroup = 3 THEN 'Ducal sign'
-                          ELSE null
-                      END as reverse
-                      from topos.types tp
-                      inner join topos.stamps st1 on st1.idType = tp.id
-                      inner join topos.stamps st2 on st2.idType = tp.id
-                      left join topos.saints saints1 on saints1.id = tp.obvImageId
-                      left join topos.saints saints2 on saints2.id = tp.revImageId
-                      left join topos.signs signs1 on signs1.id = tp.obvImageId
-                      left join topos.signs signs2 on signs2.id = tp.revImageId
-                      left join topos.crosses crosses1 on crosses1.id = tp.obvImageId
-                      left join topos.crosses crosses2 on crosses2.id = tp.revImageId
-                      where st1.isObverse and st1.id!=st2.id
+            inner join (${grandRequest}
                       and ((
                           tp.obvImageGroup = ${getDBIndex(req.query['0'])} ${condition1Exists}
                           and tp.revImageGroup = ${getDBIndex(req.query['2'])} ${condition3Exists}
@@ -506,7 +508,7 @@ app.get('/parametrizedStamps',
 });
 
 app.get('/specimensGeo',
-        (req, res, next) => {
+        (req, res) => {
             let searchString =
             `select id, imgType, idObv, idRev, geo, latitude, longitude
             from topos.specimens
@@ -521,7 +523,7 @@ app.get('/specimensGeo',
 });
 
 app.get('/literature',
-        (req, res, next) => {
+        (req, res) => {
             let searchString =
             `select *
             from topos.publications pub
@@ -536,7 +538,7 @@ app.get('/literature',
 });
 
 app.get('/specimenCoordinates',
-        (req, res, next) => {
+        (req, res) => {
             let searchString =
             `update topos.specimens set latitude=${req.query['1']}, longitude=${req.query['2']}
               where id=${req.query['0']}`;
@@ -550,39 +552,14 @@ app.get('/specimenCoordinates',
 });
 
 app.get('/type',
-        (req, res, next) => {
+        (req, res) => {
             console.log(req.query);
 
             let searchString =
                     `select s.*, pub.name, pub.year, ps.page, ps.number from
-                     (select sps.*, magna.obverse, magna.reverse
+                     (select sps.*, magna.obverse, magna.reverse, obvDescription, revDescription, codirect
                       from topos.specimens sps
-                      inner join (SELECT DISTINCT tp.id, st1.id obv, st2.id rev,
-                          CASE
-                              WHEN tp.obvImageGroup = 0 THEN tp.obvText
-                          	WHEN tp.obvImageGroup = 1 THEN CONCAT(saints1.name, ' ', saints1.epithet)
-                          	WHEN tp.obvImageGroup = 2 THEN crosses1.name
-                              WHEN tp.obvImageGroup = 3 THEN 'Ducal sign'
-                              ELSE null
-                          END as obverse,
-                          CASE
-                              WHEN tp.revImageGroup = 0 THEN tp.revText
-                          	WHEN tp.revImageGroup = 1 THEN CONCAT(saints2.name, ' ', saints2.epithet)
-                          	WHEN tp.revImageGroup = 2 THEN crosses2.name
-                              WHEN tp.revImageGroup = 3 THEN 'Ducal sign'
-                              ELSE null
-                          END as reverse
-                          from topos.types tp
-                          inner join topos.stamps st1 on st1.idType = tp.id
-                          inner join topos.stamps st2 on st2.idType = tp.id
-                          left join topos.saints saints1 on saints1.id = tp.obvImageId
-                          left join topos.saints saints2 on saints2.id = tp.revImageId
-                          left join topos.signs signs1 on signs1.id = tp.obvImageId
-                          left join topos.signs signs2 on signs2.id = tp.revImageId
-                          left join topos.crosses crosses1 on crosses1.id = tp.obvImageId
-                          left join topos.crosses crosses2 on crosses2.id = tp.revImageId
-                          where st1.isObverse and st1.id!=st2.id
-                        ) magna on magna.obv = sps.idObv and magna.rev = sps.idRev
+                      inner join (${grandRequest}) magna on magna.obv = sps.idObv and magna.rev = sps.idRev
                         where sps.idObv=${req.query['0']} and sps.idRev=${req.query['1']}) s
                               left join topos.publicationSpecimen ps on ps.idSpecimen = s.id
                               left join topos.publications pub on pub.id = ps.idPublication`;
@@ -595,7 +572,7 @@ app.get('/type',
             );
 });
 
-app.get('/types', isAuth, (req, res, next) => {
+app.get('/types', isAuth, (req, res) => {
     let saints = [];
     let types = [];
     connection.query('Select * from saints', function (error, results) {
@@ -622,7 +599,7 @@ app.get('/types', isAuth, (req, res, next) => {
 
 // Supplementary routes
 
-app.get('/admin-route', isAdmin, (req, res, next) => {
+app.get('/admin-route', isAdmin, (req, res) => {
     res.send('<h1>You are admin</h1><p><a href="/logout">Logout and reload</a></p>');
 });
 
@@ -630,20 +607,20 @@ app.listen(3000, function () {
     console.log('App listening on port 3000!')
 });
 
-app.get('/notAuthorized', (req, res, next) => {
+app.get('/notAuthorized', (req, res) => {
     res.send('<h1>You are not authorized to view the resource </h1><p><a href="/login">Retry Login</a></p>');
 });
 
-app.get('/notAuthorizedAdmin', (req, res, next) => {
+app.get('/notAuthorizedAdmin', (req, res) => {
     res.send('<h1>You are not authorized to view the resource as you are not the admin of the page  </h1><p><a href="/login">Retry to Login as admin</a></p>');
 });
 
-app.get('/userAlreadyExists', (req, res, next) => {
+app.get('/userAlreadyExists', (req, res) => {
     res.send('<h1>Sorry This username is taken </h1><p><a href="/register">Register with different username</a></p>');
 });
 
-app.post('/addSaint', (req, res, next) => {
-    connection.query('Insert into saints(name, epithet, story) values(?,?,?) ', [req.body.saintName, req.body.saintEpithet, req.body.saintDescription], function (error, results, fields) {
+app.post('/addSaint', (req, res) => {
+    connection.query('Insert into saints(name, epithet, story) values(?,?,?) ', [req.body.saintName, req.body.saintEpithet, req.body.saintDescription], function (error) {
         if (error) {
             console.log(error);
         }
@@ -654,12 +631,12 @@ app.post('/addSaint', (req, res, next) => {
     res.redirect('/contribute');
 });
 
-app.post('/addSign', (req, res, next) => {
+app.post('/addSign', (req, res) => {
     var form = new formidable.IncomingForm();
     form.uploadDir = "./public/signs/";
     form.parse(req, function(err, fields, files) {
         let ext = files.signImage.originalFilename.split('.').pop();
-        connection.query('Insert into signs(type, description) values(?,?)', [ext, req.body.signDescription], function (error, results, fields) {
+        connection.query('Insert into signs(type, description) values(?,?)', [ext, req.body.signDescription], function (error, results) {
             if (error) {
                 console.log(error);
             }
@@ -673,7 +650,7 @@ app.post('/addSign', (req, res, next) => {
 });
 
 app.post('/specimen',
-    (req, res, next) => {
+    (req, res) => {
        var form = new formidable.IncomingForm();
        form.parse(req, function(err, fields, files) {
          console.log(fields);
@@ -698,95 +675,105 @@ app.post('/specimen',
       });
  });
 
-async function branchCases (typeId, err, fields, files) {
-    const {obvGroup, revGroup, obvIndex, revIndex,
-      obvStamp, revStamp, obvDescription, revDescription, orient,
+async function branchCases (typeId, err, fields, files, cb) {
+    const {obvDescription, revDescription, orient,
       size, weight, findingSpot, findingSpotComments, publication, page, number} = fields;
 
     let extObv = files.obvStamp.originalFilename.split('.').pop();
     let extRev = files.revStamp.originalFilename.split('.').pop();
     let indObv, indRev;
 
-    connection.query(`Insert into stamps (idType, isObverse, description, isCoDirectional, imgType)
-        values(?,?,?,?,?)`, [typeId, 1, obvDescription, orient==="↑↑", extObv],
-      function (error, results, fields) {
-        if (error) {
-            console.log(error);
-        }
-        else {
-            indObv = results.insertId;
-            fs.rename(files.obvStamp.filepath, `./public/stamps/${results.insertId}.${extObv}`, (err) => { if (err) throw err;});
-        }
-    });
+     await connection.query(`Insert into stamps (idType, isObverse, description, isCoDirectional, imgType)
+        values(?,?,?,?,?)`, [typeId, 1, obvDescription, orient === "↑↑", extObv],
+         function (error, results) {
+            if (error) {
+                console.log(error);
+            }
+            else {
+                indObv = results.insertId;
+                fs.rename(files.obvStamp.filepath, `./public/stamps/${results.insertId}.${extObv}`, (err) => {
+                    if (err)
+                        throw err;
+                });
+            }
+        });
 
-    connection.query(`Insert into stamps (idType, isObverse, description, imgType)
+     connection.query(`Insert into stamps (idType, isObverse, description, imgType)
         values(?,?,?,?)`, [typeId, 0, revDescription, extRev],
-      function (error, results, fields) {
-        if (error) {
-            console.log(error);
-        }
-        else {
-            indRev = results.insertId;
-            fs.rename(files.revStamp.filepath, `./public/stamps/${results.insertId}.${extRev}`, (err) => { if (err) throw err;});
+         function (error, results) {
+            if (error) {
+                console.log(error);
+            }
+            else {
+                indRev = results.insertId;
+                fs.rename(files.revStamp.filepath, `./public/stamps/${results.insertId}.${extRev}`, (err) => {
+                    if (err)
+                        throw err;
+                });
 
-            let ext = files.picture.originalFilename.split('.').pop();
+                let ext = files.picture.originalFilename.split('.').pop();
 
-            connection.query(`Insert into specimens(idObv, idRev, geo, geoComment, weight, maxDiameter, imgType)
+                connection.query(`Insert into specimens(idObv, idRev, geo, geoComment, weight, maxDiameter, imgType)
                  values(?,?,?,?,?,?,?)`, [indObv, indRev, findingSpot, findingSpotComments, weight, size, ext],
-                    function (error, results) {
-                      if (error) console.log(error);
-                      else {
-                        fs.rename(files.picture.filepath, `./public/specimens/${results.insertId}.${ext}`, (err) => { if (err) throw err;});
+                   function (error, results) {
+                        if (error)
+                            console.log(error);
+                        else {
+                            fs.rename(files.picture.filepath, `./public/specimens/${results.insertId}.${ext}`, (err) => {
+                                if (err)
+                                    throw err;
+                            });
 
-                        connection.query(`Insert into publicationSpecimen(idSpecimen, idPublication, page, number)
+                            connection.query(`Insert into publicationSpecimen(idSpecimen, idPublication, page, number)
                              values(?,?,?,?)`, [results.insertId, parseInt(publication), page, number],
-                                function (error, results) {
-                                  if (error) console.log(error);
-                                  else {
-                                    console.log (`все сделали, будем вращать из branchCases`);
-                                    console.log ([indObv, indRev]);
-                                    return [indObv, indRev];
-                                  }
+                                 function (error, results) {
+                                    if (error)
+                                        console.log(error);
+                                    else {
+                                        console.log([indObv, indRev]);
+                                        cb ([indObv, indRev]);
+                                    }
                                 }
-                        );
-                      }
+                            );
+                        }
                     }
-            );
-        }
-    });
+                );
+
+            }
+        });
+
 }
 
 app.post('/typeAndSpecimen',
-     (req, res, next) => {
+    (req, res) => {
         var form = new formidable.IncomingForm();
-        form.parse(req, function(err, fields, files) {
+        form.parse(req, async function(err, fields, files) {
           console.log(fields);
           const {obvGroup, revGroup, obvIndex, revIndex} = fields;
 
           if (fields.revGroup) {
-            connection.query(`Insert into types(obvImageGroup, obvImageId, revImageGroup, revImageId)
-                values(?,?,?,?)`, [getDBIndex(obvGroup), obvIndex, getDBIndex(revGroup), revIndex],
-              function (error, results) {
-                if (error) {
-                    console.log(error);
-                }
-                else branchCases (results.insertId, err, fields, files).then(response => {
-                  return res.json(response)});
-            });
+              connection.query(`Insert into types(obvImageGroup, obvImageId, revImageGroup, revImageId)
+                  values(?,?,?,?)`, [getDBIndex(obvGroup), obvIndex, getDBIndex(revGroup), revIndex],
+              async function (error, results) {
+                  if (error) {
+                      console.log(error);
+                  }
+                  else await branchCases(results.insertId, err, fields, files,
+                        (result) => { return res.json(result)});
+              });
           }
-          else
-            branchCases (obvGroup, err, fields, files).then(response => {
-              return res.json(response)});
+          else await branchCases(obvGroup, err, fields, files,
+                (result) => { return res.json(result)});
        });
   });
 
-app.post('/addPersona', (req, res, next) => {
+app.post('/addPersona', (req, res) => {
     connection.query(`Insert into personalia(name, idPatron, idFather, dateBirth, datePower, dateDeath,
         birthProximity, powerProximity, deathProximity) values(?,?,?,?,?,?,?,?,?)`,
      [req.body.personaName, req.body.christianPatron, req.body.father,
         req.body.dateBirth, req.body.datePower, req.body.dateDeath,
         req.body.birthProximity?1:0, req.body.powerProximity?1:0, req.body.deathProximity?1:0],
-      function (error, results, fields) {
+      function (error) {
         if (error) {
             console.log(error);
         }
@@ -797,9 +784,9 @@ app.post('/addPersona', (req, res, next) => {
     res.redirect('/personalia');
 });
 
-app.post('/assignSign', (req, res, next) => {
+app.post('/assignSign', (req, res) => {
     connection.query(`Insert into princeSign(idPrince, idSign) values(?,?)`, [req.body.prince, req.body.radioSign],
-      function (error, results, fields) {
+      function (error) {
         if (error) {
             console.log(error);
         }
@@ -810,13 +797,13 @@ app.post('/assignSign', (req, res, next) => {
     res.redirect('/contribute');
 });
 
-app.post('/addType', (req, res, next) => {
+app.post('/addType', (req, res) => {
     let dateLow = req.body.dateLow==''? null:req.body.dateLow;
     let dateHigh = req.body.dateHigh==''? null:req.body.dateHigh;
     connection.query(`Insert into types(obvImageGroup, obvImageId, revImageGroup, revImageId,
         dateLow, dateHigh, isAnonymousImitation) values(?,?,?,?,?,?,?)`, [req.body.obvImageGroup, req.body.obvImageId,
          req.body.revImageGroup, req.body.revImageId, dateLow, dateHigh, req.body.isAnonymousImitation],
-      function (error, results, fields) {
+      function (error) {
         if (error) {
             console.log(error);
         }

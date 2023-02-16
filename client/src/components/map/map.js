@@ -10,7 +10,7 @@ export default class MapComponent extends Component {
     geos: [],
     lat: 54.340083,
     lng: 29.7617912,
-    zoom: 4
+    zoom: 5
   };
 
   geoCoordinates = new InternalService();

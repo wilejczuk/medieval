@@ -86,7 +86,7 @@ export default class AddType extends Component {
                       console.log(response);
 
                       const newRoute = `/type/${response.data[0]}/${response.data[1]}`;
-                      //window.location.replace(newRoute);
+                      window.location.replace(newRoute);
                     })
                     .catch(error => console.log(error));
                  setSubmitting(false);

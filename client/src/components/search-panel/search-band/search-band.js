@@ -27,16 +27,19 @@ export default class SearchBand extends Component {
           crosses: body.data.crosses.map(({id, type}) => {
             return {id: id, text: `${this.stampsData._apiBase}crosses/${id}.png`}
           }),
-          letters: this.stampsData.symbolsEnum.map ((item, index) => {
-            return {id: index, text: item}
+          letters: body.data.letters.map (({id, symbol}) => {
+            return {id: id, text: symbol}
           })
+          /*letters: this.stampsData.symbolsEnum.map ((item, index) => {
+            return {id: index, text: item}
+          })*/
         });
       });
   }
 
   selectItems(kind) {
     this.setState({ currentSelection: kind });
-    this.props.onChange(kind, null);
+    this.props.onChange(kind, kind === "text" ? 0: null);
   }
 
   render() {
@@ -57,7 +60,7 @@ export default class SearchBand extends Component {
           <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("letters")}>Letter</button>
           <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("signs")}>Tamgha</button>
           <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("crosses")}>Cross</button>
-          <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("text")}>Text</button>
+          <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("text")}>Other</button>
         </div>
 
         <div className="type-content">
