@@ -19,12 +19,15 @@ export default class MapComponent extends Component {
     this.geoCoordinates.getLocations()
       .then((body) => {
         let allGeo = [];
+        //console.log(body);
         body.data.map(({geo, idObv, idRev, id, imgType, latitude, longitude}) => {
           if (latitude) allGeo.push({idObv, idRev, id, imgType, lat:latitude, lon:longitude});
           else {
             this.geoCoordinates.getCoordinates(geo).then((geocode) => {
-              allGeo.push({idObv, idRev, id, imgType, lat:geocode.data[0].lat, lon:geocode.data[0].lon});
-              this.geoCoordinates.setCoordinates([id, geocode.data[0].lat, geocode.data[0].lon]);
+              if (geocode.data.length>0) {
+                allGeo.push({idObv, idRev, id, imgType, lat:geocode.data[0].lat, lon:geocode.data[0].lon});
+                this.geoCoordinates.setCoordinates([id, geocode.data[0].lat, geocode.data[0].lon]);
+              }
             });
           }
         });

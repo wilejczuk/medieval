@@ -1,6 +1,7 @@
 import React, { Component }  from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import InternalService from '../../../services/internal-api';
+import Loading from '../../loading';
 
 import './add-type.css';
 
@@ -9,7 +10,8 @@ export default class AddType extends Component {
   stampsData = new InternalService();
 
   state = {
-    literature: null
+    literature: null,
+    loading: false
   };
 
   componentDidMount() {
@@ -32,16 +34,18 @@ export default class AddType extends Component {
   }
 
   render() {
-    const {literature} = this.state;
+    const {literature, loading} = this.state;
     if (!literature) {
       return (
         <h3>Literature is loading.</h3>
       )
     }
+
+    if (loading) return (<Loading />)
+
     const litOptions = this.renderLitItems(literature);
 
     const searchParams = this.props.match.params;
-    console.log(searchParams);
 
     const itemsHeader =
     (<div><h5>Add one specimen of the type</h5></div>);
@@ -77,15 +81,19 @@ export default class AddType extends Component {
                return errors;
              }}
              onSubmit={(values, { setSubmitting }) => {
+               this.setState({
+                 loading: true
+               });
                setTimeout(() => {
                   this.stampsData.addTypeAndSpecimen (values.obvGroup, values.revGroup, values.obvIndex,
                     values.revIndex, values.obvStamp, values.revStamp, values.obvDescription,
                     values.revDescription, values.orient, values.picture, values.size, values.weight,
                     values.findingSpot, values.findingSpotComments, values.publication, values.page, values.number)
                     .then(response => {
-                      console.log(response);
-
                       const newRoute = `/type/${response.data[0]}/${response.data[1]}`;
+                      this.setState({
+                        loading: false
+                      });
                       window.location.replace(newRoute);
                     })
                     .catch(error => console.log(error));

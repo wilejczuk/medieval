@@ -12,44 +12,28 @@ var path = require('path');
 var fs = require('fs-extra');
 const jwt = require('jsonwebtoken');
 
+const connectionData =  require ('./connection-data');
+const cookieSession =  require ('./cookie-session');
+
+//const url = "http://localhost:3001";
+const url = "https://kievan-rus.online";
+
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "http://localhost:3001");
+  res.header("Access-Control-Allow-Origin", url);
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
 
-app.use(session(
-    {
-        key: 'session_cookie_name',
-        secret: 'session_cookie_secret',
-        store: new MySQLStore({
-            host: 'localhost',
-            port: 3306,
-            user: 'root',
-            password: 'password',
-            database: 'topos'
-        }),
-        resave: false,
-        saveUninitialized: false,
-        cookie: { maxAge: 86400 }
-    }
-));
+app.use(session(cookieSession(MySQLStore, url)));
 
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-//app.use(express.static('public'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 
-var connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'password',
-    database: 'topos',
-    multipleStatements: true
-});
+var connection = mysql.createConnection(connectionData(url));
 
 connection.connect((err) => {
     if (!err) console.log("Connected")
@@ -141,7 +125,11 @@ function userExists(req, res, next) {
 
 /*routes*/
 app.get('/', (req, res) => {
-    res.render('home')
+    return res.json ("Root");
+});
+
+app.get('/server', (req, res) => {
+    return res.json ("Server test");
 });
 
 app.get('/login', (req, res) => {
@@ -205,6 +193,8 @@ app.post('/loginNew',
             async (error) => {
               if (error) return next(error);
               const body = { id: user.id, salt: user.salt };
+              console.log(user.id);
+              console.log(user.salt);
               const token = jwt.sign({ user: body }, 'TOP_SECRET');
               return res.json({ token });
             }
@@ -401,9 +391,9 @@ app.get('/personalia-with-saints', (req, res) => {
 
 app.get('/stamps',
         (req, res) => {
-            connection.query(`select magna.obv, magna.rev, magna.obverse, magna.reverse, count(sps.id) cnt
+            connection.query(`select magna.*, count(sps.id) cnt
 from (${grandRequest}) magna
-                  inner join topos.specimens sps on magna.obv = sps.idObv and magna.rev = sps.idRev
+                  inner join specimens sps on magna.obv = sps.idObv and magna.rev = sps.idRev
                   group by sps.idObv, sps.idRev`,
                     function (error, results) {
                       if (error) console.log(error);
@@ -437,8 +427,11 @@ function getDBIndex(group) {
   return index;
 }
 
-const grandRequest = `SELECT DISTINCT tp.id, tp.obvImageGroup, tp.revImageGroup, st1.id obv, st2.id rev,
+const grandRequest = `SELECT DISTINCT tp.id typeId, tp.obvImageGroup, tp.revImageGroup, st1.id obv, st2.id rev,
+    st1.imgType obvType, st2.imgType revType,
     st1.description obvDescription, st2.description revDescription, st1.isCoDirectional codirect,
+    per.name attributionPersona, pub.name attributionPublication, pub.year attributionYear,
+    pA.page attributionPage, per.datePower, per.dateDeath, per.id personId,
     CASE
         WHEN tp.obvImageGroup = 0 THEN tp.obvText
         WHEN tp.obvImageGroup = 1 THEN CONCAT(saints1.name, ' ', saints1.epithet)
@@ -455,18 +448,50 @@ const grandRequest = `SELECT DISTINCT tp.id, tp.obvImageGroup, tp.revImageGroup,
         WHEN tp.obvImageGroup = 4 THEN letters2.symbol
         ELSE null
     END as reverse
-    from topos.types tp
-    inner join topos.stamps st1 on st1.idType = tp.id
-    inner join topos.stamps st2 on st2.idType = tp.id
-    left join topos.saints saints1 on saints1.id = tp.obvImageId
-    left join topos.saints saints2 on saints2.id = tp.revImageId
-    left join topos.signs signs1 on signs1.id = tp.obvImageId
-    left join topos.signs signs2 on signs2.id = tp.revImageId
-    left join topos.crosses crosses1 on crosses1.id = tp.obvImageId
-    left join topos.crosses crosses2 on crosses2.id = tp.revImageId
-    left join topos.letters letters1 on letters1.id = tp.obvImageId
-    left join topos.letters letters2 on letters2.id = tp.revImageId
+    from types tp
+    inner join stamps st1 on st1.idType = tp.id
+    inner join stamps st2 on st2.idType = tp.id
+    left join saints saints1 on saints1.id = tp.obvImageId
+    left join saints saints2 on saints2.id = tp.revImageId
+    left join signs signs1 on signs1.id = tp.obvImageId
+    left join signs signs2 on signs2.id = tp.revImageId
+    left join crosses crosses1 on crosses1.id = tp.obvImageId
+    left join crosses crosses2 on crosses2.id = tp.revImageId
+    left join letters letters1 on letters1.id = tp.obvImageId
+    left join letters letters2 on letters2.id = tp.revImageId
+    left join publicationAttribution pA on pA.idObverse = st1.id
+    left join personalia per on per.id = pA.idPersona
+    left join publications pub on pub.id = pA.idPublication
     where st1.isObverse and st1.id!=st2.id`;
+
+app.get('/dukesStamps',
+    (req, res) => {
+        connection.query(`select magna.*, count(sps.id) cnt
+        from (${grandRequest}) magna
+              inner join specimens sps on magna.obv = sps.idObv and magna.rev = sps.idRev
+              where personId = ${req.query['0']}
+              group by sps.idObv, sps.idRev`,
+                function (error, results) {
+                  if (error) console.log(error);
+                  else return res.json (results);
+                }
+        );
+});
+
+app.get('/dukesList',
+    (req, res) => {
+        connection.query(`select pr.*, count(st.id) 
+        FROM publicationAttribution pa 
+        left join stamps st on pa.idObverse = st.id
+        left join personalia pr on pa.idPersona = pr.id
+        group by pr.name
+        order by pr.dateBirth`,
+                function (error, results) {
+                  if (error) console.log(error);
+                  else return res.json (results);
+                }
+        );
+});
 
 app.get('/parametrizedStamps',
         (req, res) => {
@@ -486,7 +511,7 @@ app.get('/parametrizedStamps',
 
             let searchString =
             `select magna.*, count(sps.id) cnt
-            from topos.specimens sps
+            from specimens sps
             inner join (${grandRequest}
                       and ((
                           tp.obvImageGroup = ${getDBIndex(req.query['0'])} ${condition1Exists}
@@ -509,9 +534,10 @@ app.get('/parametrizedStamps',
 
 app.get('/specimensGeo',
         (req, res) => {
+            console.log ("Executing automatic request");
             let searchString =
             `select id, imgType, idObv, idRev, geo, latitude, longitude
-            from topos.specimens
+            from specimens
             where geo is not null`;
 
             connection.query(searchString,
@@ -526,7 +552,7 @@ app.get('/literature',
         (req, res) => {
             let searchString =
             `select *
-            from topos.publications pub
+            from publications pub
             order by pub.year`;
 
             connection.query(searchString,
@@ -540,7 +566,7 @@ app.get('/literature',
 app.get('/specimenCoordinates',
         (req, res) => {
             let searchString =
-            `update topos.specimens set latitude=${req.query['1']}, longitude=${req.query['2']}
+            `update specimens set latitude=${req.query['1']}, longitude=${req.query['2']}
               where id=${req.query['0']}`;
 
             connection.query(searchString,
@@ -557,12 +583,12 @@ app.get('/type',
 
             let searchString =
                     `select s.*, pub.name, pub.year, ps.page, ps.number from
-                     (select sps.*, magna.obverse, magna.reverse, obvDescription, revDescription, codirect
-                      from topos.specimens sps
+                     (select sps.*, magna.*
+                      from specimens sps
                       inner join (${grandRequest}) magna on magna.obv = sps.idObv and magna.rev = sps.idRev
                         where sps.idObv=${req.query['0']} and sps.idRev=${req.query['1']}) s
-                              left join topos.publicationSpecimen ps on ps.idSpecimen = s.id
-                              left join topos.publications pub on pub.id = ps.idPublication`;
+                              left join publicationSpecimen ps on ps.idSpecimen = s.id
+                              left join publications pub on pub.id = ps.idPublication`;
                   console.log(searchString);
             connection.query(searchString,
                     function (error, results) {
@@ -641,7 +667,7 @@ app.post('/addSign', (req, res) => {
                 console.log(error);
             }
             else {
-                fs.rename(files.signImage.filepath, `./public/signs/${results.insertId}.${ext}`, (err) => { if (err) throw err;});
+                (files.signImage.filepath, `./public/signs/${results.insertId}.${ext}`, (err) => { if (err) throw err;});
                 res.end();
             }
         });
@@ -661,7 +687,7 @@ app.post('/specimen',
                    function (error, results) {
                      if (error) console.log(error);
                      else {
-                       fs.rename(files.picture.filepath, `./public/specimens/${results.insertId}.${ext}`, (err) => { if (err) throw err;});
+                       fs.move(files.picture.filepath, `./public/specimens/${results.insertId}.${ext}`, (err) => { if (err) throw err;});
                        connection.query(`Insert into publicationSpecimen(idSpecimen, idPublication, page, number)
                             values(?,?,?,?)`, [results.insertId, parseInt(publication), page, number],
                                function (error, results) {
@@ -691,7 +717,7 @@ async function branchCases (typeId, err, fields, files, cb) {
             }
             else {
                 indObv = results.insertId;
-                fs.rename(files.obvStamp.filepath, `./public/stamps/${results.insertId}.${extObv}`, (err) => {
+                fs.move(files.obvStamp.filepath, `./public/stamps/${results.insertId}.${extObv}`, (err) => {
                     if (err)
                         throw err;
                 });
@@ -706,7 +732,7 @@ async function branchCases (typeId, err, fields, files, cb) {
             }
             else {
                 indRev = results.insertId;
-                fs.rename(files.revStamp.filepath, `./public/stamps/${results.insertId}.${extRev}`, (err) => {
+                fs.move(files.revStamp.filepath, `./public/stamps/${results.insertId}.${extRev}`, (err) => {
                     if (err)
                         throw err;
                 });
@@ -719,7 +745,7 @@ async function branchCases (typeId, err, fields, files, cb) {
                         if (error)
                             console.log(error);
                         else {
-                            fs.rename(files.picture.filepath, `./public/specimens/${results.insertId}.${ext}`, (err) => {
+                            fs.move(files.picture.filepath, `./public/specimens/${results.insertId}.${ext}`, (err) => {
                                 if (err)
                                     throw err;
                             });

@@ -7,6 +7,12 @@ import './intro.css';
 
 export default class Intro extends Component {
 
+  data = new InternalService();
+
+  state = {
+    dukesList: null
+  };
+
   renderLoginOrLogout(auth) {
     if (auth) return (<LogOut />);
     else return (
@@ -49,12 +55,54 @@ export default class Intro extends Component {
         )
   }
 
+  componentDidMount() {
+    this.data.getDukes()
+        .then((body) => {
+          this.setState({
+            dukesList: body.data
+          });
+        });
+  }
+
+  renderItems(arr) {
+    return arr.map(({
+        id,
+        name,
+        dateBirth,
+        dateDeath,
+        datePower,
+        birthProximity,
+        powerProximity,
+        deathProximity
+      }) => {
+      const title = `${name} (${birthProximity?'≈':''}${dateBirth} ϡ ${powerProximity?'≈':''}${datePower} † ${deathProximity?'≈':''}${dateDeath})`;
+      const link = `/duke/${id}`;
+      const uniqueKey = `duke${id}`;
+      return (
+        <ul key={uniqueKey}>
+          <li>
+            <a href={link}>{title}</a>
+          </li>
+        </ul>
+      );
+    });
+  }
+ 
   render() {
     const needLogin = this.renderLoginOrLogout(localStorage.getItem("token") ? true : false);
+    const { dukesList } = this.state;
+    
+    if (!dukesList) {
+      return (<br />)
+    }
+
+    const items = this.renderItems(dukesList);
 
     return (
       <div className="padding-left">
-        <p>Welcome to the seals database! You can <a href="/search">search it</a> or select items on the map aside.</p>
+        <p>Welcome to the seals database! You can <a href="/search">search it</a>, select items <a href='/'>on the map</a>, 
+        or review items by the issuer below:</p>
+        {items}
         {needLogin}
       </div>
     )

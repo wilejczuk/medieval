@@ -2,9 +2,10 @@ import axios from 'axios';
 
 export default class InternalService {
 
-  _apiBase = 'http://localhost:3000/';
-  _clientBase = 'http://localhost:3001/';
-  //symbolsEnum = ['а', 'б', 'в', 'г', 'д', 'ѣ', 'ѧ'];
+  //_apiBase = 'http://localhost:3000/';
+  //_clientBase = 'http://localhost:3001/';
+  _apiBase = 'https://server.kievan-rus.online/';
+  _clientBase = 'https://kievan-rus.online/';
 
   async getAuthentication(url, username, password) {
     return await axios.post(`${this._apiBase}${url}`, {
@@ -23,6 +24,10 @@ export default class InternalService {
 
   async getStamps() {
     return await axios.get(`${this._apiBase}stamps`);
+  }
+
+  async getDukes() {
+    return await axios.get(`${this._apiBase}dukesList`);
   }
 
   async getLocations() {
@@ -47,6 +52,10 @@ export default class InternalService {
 
   async getSomeStamps(params) {
     return await axios.get(`${this._apiBase}parametrizedStamps`, {params: params});
+  }
+
+  async getDukesStamps(params) {
+    return await axios.get(`${this._apiBase}dukesStamps`, {params: params});
   }
 
   async getDictionaries() {

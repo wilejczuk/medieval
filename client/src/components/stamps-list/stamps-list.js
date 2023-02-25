@@ -57,13 +57,23 @@ export default class Stamps extends Component {
         });
     }
     else {
-      console.log ("no params");
-      this.stampsData.getStamps()
+      if (searchParams["id"]) {
+        this.stampsData.getDukesStamps([searchParams["id"]])
         .then((body) => {
           this.setState({
             stampsList: body.data
           });
         });
+      }
+      else {
+        console.log ("no params"); 
+        this.stampsData.getStamps()
+          .then((body) => {
+            this.setState({
+              stampsList: body.data
+            });
+          });
+      }
     }
   }
 
@@ -72,9 +82,9 @@ export default class Stamps extends Component {
   }
 
   renderItems(arr) {
-    return arr.map(({obverse, reverse, obv, rev, cnt}) => {
-      const obvPath = `${this.stampsData._apiBase}/stamps/${obv}.png`;
-      const revPath = `${this.stampsData._apiBase}/stamps/${rev}.png`;
+    return arr.map(({obverse, reverse, obv, rev, cnt, obvType, revType}) => {
+      const obvPath = `${this.stampsData._apiBase}/stamps/${obv}.${obvType}`;
+      const revPath = `${this.stampsData._apiBase}/stamps/${rev}.${revType}`;
       const specimensPath = `${this.stampsData._clientBase}type/${obv}/${rev}`;
       const uniqueKey = `${obv}-${rev}`;
       return (

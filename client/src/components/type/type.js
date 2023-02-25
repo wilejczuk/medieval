@@ -90,13 +90,20 @@ export default class Type extends Component {
     }
     const addMore = this.canAdd(localStorage.getItem("token") ? true : false);
     console.log (showType);
-    const obvPath = `${this.stampsData._apiBase}/stamps/${showType[0].idObv}.png`;
-    const revPath = `${this.stampsData._apiBase}/stamps/${showType[0].idRev}.png`;
+    const obvPath = `${this.stampsData._apiBase}/stamps/${showType[0].idObv}.${showType[0].obvType}`;
+    const revPath = `${this.stampsData._apiBase}/stamps/${showType[0].idRev}.${showType[0].revType}`;
 
     const description = showType[0].obvDescription ? (
                 <div>
                   <p><b>Obv</b>: {showType[0].obvDescription} </p>
                   <p><b>Rev</b>: {showType[0].revDescription} </p>
+                </div>
+              ) : null;
+
+    const attribution = showType[0].attributionPersona ? (
+                <div>
+                  <br /><b>Attributed to</b> {showType[0].attributionPersona} ({showType[0].datePower} - {showType[0].dateDeath}) <br />
+                  in <i>{showType[0].attributionYear}</i> <span className="date">{showType[0].attributionPublication}</span> С. {showType[0].attributionPage}.
                 </div>
               ) : null;
 
@@ -129,6 +136,7 @@ export default class Type extends Component {
             </p>
             {description}
             {codirect}
+            {attribution}
         </div>
         <div>
           {itemsHeader}

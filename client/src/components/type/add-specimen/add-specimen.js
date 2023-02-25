@@ -1,6 +1,7 @@
 import React, { Component }  from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import InternalService from '../../../services/internal-api';
+import Loading from '../../loading';
 
 import './add-specimen.css';
 
@@ -9,7 +10,8 @@ export default class AddSpecimen extends Component {
   stampsData = new InternalService();
 
   state = {
-    literature: null
+    literature: null,
+    loading: false
   };
 
   componentDidMount() {
@@ -34,19 +36,23 @@ export default class AddSpecimen extends Component {
  sendSpecimen (picture, size, weight, findingSpot, findingSpotComments, publication, idObv, idRev, page, number) {
     this.stampsData.addSpecimen(picture, size, weight, findingSpot, findingSpotComments, publication, idObv, idRev, page, number)
       .then(response => {
-console.log (response);
+        this.setState({
+          loading: false
+        });
         this.props.onAdded();
       })
       .catch(error => console.log(error));
   }
 
   render() {
-    const {literature} = this.state;
+    const {literature, loading} = this.state;
     if (!literature) {
       return (
         <h3>Literature is loading.</h3>
       )
     }
+
+    if (loading) return (<Loading />)
 
     const litOptions = this.renderLitItems(literature);
     const {defaultValues} = this.props;
@@ -79,6 +85,9 @@ console.log (response);
            return errors;
          }}
          onSubmit={(values, { setSubmitting }) => {
+           this.setState({
+             loading: true
+           });
            setTimeout(() => {
              this.sendSpecimen(values.file, values.size, values.weight, values.findingSpot,
                values.findingSpotComments,

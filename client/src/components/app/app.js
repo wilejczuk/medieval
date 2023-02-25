@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 
 import LoginForm from '../login-form';
-import Personalia from '../personalia-list';
+import Personalia from '../personalia-list'; 
 import Stamps from '../stamps-list';
 import PersonaliaNew from '../personalia-new';
 import PrivateRoute from "../route-guard";
@@ -74,6 +74,13 @@ export default class App extends Component {
           <Route path="/search/:o/:od/:r/:rd" element={
             <div className='selection-interface'>
               <SearchPanel />
+              <StampsWrapper />
+            </div>
+          } />
+
+          <Route path="/duke/:id" element={
+            <div className='selection-interface'>
+              <Intro />
               <StampsWrapper />
             </div>
           } />
