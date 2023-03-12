@@ -2,10 +2,18 @@ import axios from 'axios';
 
 export default class InternalService {
 
-  //_apiBase = 'http://localhost:3000/';
-  //_clientBase = 'http://localhost:3001/';
-  _apiBase = 'https://server.kievan-rus.online/';
-  _clientBase = 'https://kievan-rus.online/';
+  _apiBase = 'http://localhost:3000/';
+  _clientBase = 'http://localhost:3001/';
+  //_apiBase = 'https://server.kievan-rus.online/';
+  //_clientBase = 'https://kievan-rus.online/';
+
+  token = localStorage.getItem("token");
+  defaultHeaders = { headers: 
+      {
+      'Content-Type': 'multipart/form-data',
+      'Authorization': `Bearer ${this.token}`
+      }
+    }
 
   async getAuthentication(url, username, password) {
     return await axios.post(`${this._apiBase}${url}`, {
@@ -30,6 +38,10 @@ export default class InternalService {
     return await axios.get(`${this._apiBase}dukesList`);
   }
 
+  async getDukesEnum() {
+    return await axios.get(`${this._apiBase}dukes`);
+  }
+
   async getLocations() {
     return await axios.get(`${this._apiBase}specimensGeo`);
   }
@@ -48,6 +60,10 @@ export default class InternalService {
 
   async getType(params) {
     return await axios.get(`${this._apiBase}type`, {params: params});
+  }
+
+  async getTypeAttributions(params) {
+    return await axios.get(`${this._apiBase}typeAttributions`, {params: params});
   }
 
   async getSomeStamps(params) {
@@ -74,6 +90,22 @@ export default class InternalService {
     return await axios.get(`${this._apiBase}selectLetter`, {params: params});
   }
 
+  async sendEmail (email, obverse, reverse, description) {
+    let formData = new FormData();
+    formData.append("email", email);
+    formData.append("obverse", obverse);
+    formData.append("reverse", reverse);
+    formData.append("description", description);
+
+    return await axios.post(`${this._apiBase}sendEmail`,
+          formData,
+          { headers: {
+                'Content-Type': 'multipart/form-data'
+              }
+          }
+    );
+  }
+
   async addSpecimen(picture, size, weight, findingSpot, findingSpotComments, publication, idObv, idRev, page, number) {
     let formData = new FormData();
     formData.append("picture", picture);
@@ -88,11 +120,19 @@ export default class InternalService {
     formData.append("number", number);
 
     return await axios.post(`${this._apiBase}specimen`,
-          formData,
-          { headers: {
-                'Content-Type': 'multipart/form-data'
-              }
-          }
+          formData, this.defaultHeaders
+    );
+  }
+
+  async addAttribution(idPersona, idPublication, idObv, page) {
+    let formData = new FormData();
+    formData.append("idPersona", idPersona);
+    formData.append("idPublication", idPublication);
+    formData.append("idObv", idObv);
+    formData.append("page", page);
+
+    return await axios.post(`${this._apiBase}addAttribution`,
+          formData, this.defaultHeaders
     );
   }
 
@@ -127,11 +167,7 @@ export default class InternalService {
       formData.append("number", number);
 
       return await axios.post(`${this._apiBase}typeAndSpecimen`,
-            formData,
-            { headers: {
-                  'Content-Type': 'multipart/form-data'
-                }
-            }
+            formData, this.defaultHeaders
       );
   }
 }

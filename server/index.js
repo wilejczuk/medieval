@@ -2,6 +2,7 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const express = require('express');
 const app = express();
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const mysql = require('mysql');
 const crypto = require('crypto');
@@ -11,41 +12,90 @@ var formidable = require('formidable');
 var path = require('path');
 var fs = require('fs-extra');
 const jwt = require('jsonwebtoken');
+const passportJWT = require("passport-jwt");
+const JWTStrategy = passportJWT.Strategy;
+const ExtractJWT = passportJWT.ExtractJwt;
+const nodemailer = require('nodemailer');
+const config = require('./config.json');
 
-const connectionData =  require ('./connection-data');
-const cookieSession =  require ('./cookie-session');
-
-//const url = "http://localhost:3001";
-const url = "https://kievan-rus.online";
-
+const env = "test";
+ 
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", url);
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header("Access-Control-Allow-Origin", config[env].url);
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT");
   next();
 });
 
-app.use(session(cookieSession(MySQLStore, url)));
+//  Initialize PassportJS Middleware
 
+const cookieSession = {
+    key: 'session_cookie_name',
+    secret: 'session_cookie_secret',
+    store: new MySQLStore({
+        host: config[env].db.host,
+        port: 3306,
+        user: config[env].db.user,
+        password: config[env].db.password,
+        database: config[env].db.database
+    }),
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 86400 }
+}
+
+app.use(session(cookieSession));
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(cors());
+
+// 
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 
-var connection = mysql.createConnection(connectionData(url));
+var connection = mysql.createConnection({
+    host: config[env].db.host,
+    user: config[env].db.user,
+    password: config[env].db.password,
+    database: config[env].db.database,
+    multipleStatements: true
+ });
 
 connection.connect((err) => {
     if (!err) console.log("Connected")
     else console.log(err);
 });
 
+passport.use(new JWTStrategy({
+    jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
+    secretOrKey   : 'TOP_SECRET'
+    },
+    function (jwtPayload, cb) {
+        const {id, salt} = jwtPayload.user;
+        connection.query(`SELECT * FROM users WHERE id = ${id} and salt = '${salt}'`,
+         function (error, results) {
+            if (error)
+                return cb(error);
+            console.log(results);
+            return cb(null, results[0]);
+    }
+)}));
+
+// Protected routes (only for JWT bearers above)
+app.use('/addAttribution', passport.authenticate('jwt', {session: false}));
+app.use('/typeAndSpecimen', passport.authenticate('jwt', {session: false}));
+app.use('/specimen', passport.authenticate('jwt', {session: false}));
+
+/*Passport JS*/
+
 const customFields = {
     usernameField: 'uname',
     passwordField: 'pw',
 };
 
-/*Passport JS*/
 const verifyCallback = (username, password, done) => {
     connection.query('SELECT * FROM users WHERE email = ? ', [username], function (error, results) {
         if (error)
@@ -55,7 +105,7 @@ const verifyCallback = (username, password, done) => {
             return done(null, false);
         }
         const isValid = validPassword(password, results[0].hash, results[0].salt);
-        user = { id: results[0].id, username: results[0].username, hash: results[0].hash, salt: results[0].salt };
+        user = { id: results[0].id, username: results[0].email, hash: results[0].hash, salt: results[0].salt };
         if (isValid) {
             return done(null, user);
         }
@@ -69,10 +119,12 @@ const strategy = new LocalStrategy(customFields, verifyCallback);
 passport.use(strategy);
 
 passport.serializeUser((user, done) => {
+    console.log("serialize");
     done(null, user.id)
 });
 
 passport.deserializeUser(function (userId, done) {
+    console.log("deserialize");
     connection.query('SELECT * FROM users where id = ?', [userId], function (error, results) {
         done(null, results[0]);
     });
@@ -91,24 +143,6 @@ function genPassword(password) {
     return { salt: salt, hash: genhash };
 }
 
-function isAuth(req, res, next) {
-    if (req.isAuthenticated()) {
-        next();
-    }
-    else {
-        res.redirect('/notAuthorized');
-    }
-}
-
-function isAdmin(req, res, next) {
-    if (req.isAuthenticated() && req.user.isAdmin == 1) {
-        next();
-    }
-    else {
-        res.redirect('/notAuthorizedAdmin');
-    }
-}
-
 function userExists(req, res, next) {
     connection.query('Select * from users where email=? ', [req.body.uname], function (error, results) {
         if (error) {
@@ -124,17 +158,6 @@ function userExists(req, res, next) {
 }
 
 /*routes*/
-app.get('/', (req, res) => {
-    return res.json ("Root");
-});
-
-app.get('/server', (req, res) => {
-    return res.json ("Server test");
-});
-
-app.get('/login', (req, res) => {
-    res.render('login')
-});
 
 app.get('/logout', (req, res, next) => {
     req.logout(function (err) {
@@ -143,22 +166,8 @@ app.get('/logout', (req, res, next) => {
     }); //deletes the user from the session
 });
 
-app.get('/login-success', (req, res) => {
-    res.render('login-success');
-});
-
-app.get('/login-failure', (req, res) => {
-    res.send('Your email or/and password are wrong');
-});
-
-app.get('/register', (req, res) => {
-    res.render('register')
-});
-
 app.post('/register', userExists, (req, res) => {
-    console.log(req.body.pw);
     const saltHash = genPassword(req.body.pw);
-    console.log(saltHash);
     const salt = saltHash.salt;
     const hash = saltHash.hash;
 
@@ -181,10 +190,9 @@ app.post('/loginNew',
     passport.authenticate('local',
       async (err, user) => {
         try {
+          console.log(user);
           if (err || !user) {
-            const error = new Error('An error occurred.');
-            // express 401/403 how to return
-            return next(error);
+            return res.sendStatus(401);
           }
 
           req.login(
@@ -193,8 +201,6 @@ app.post('/loginNew',
             async (error) => {
               if (error) return next(error);
               const body = { id: user.id, salt: user.salt };
-              console.log(user.id);
-              console.log(user.salt);
               const token = jwt.sign({ user: body }, 'TOP_SECRET');
               return res.json({ token });
             }
@@ -209,7 +215,7 @@ app.post('/loginNew',
 
 // CMS editor routes (authorized - yes, admin - no)
 
-app.get('/contribute', isAuth, (req, res) => {
+app.get('/contribute', (req, res) => {
     let saints = [];
     let signs = [];
     let personalia = [];
@@ -231,7 +237,7 @@ app.get('/contribute', isAuth, (req, res) => {
                         }
                         else {
                             personalia = results;
-                            res.render('contribute', { saints: saints, signs: signs, personalia: personalia });
+                            return res.json({ saints: saints, signs: signs, personalia: personalia });
                         }
                     });
                 }
@@ -306,41 +312,6 @@ app.get('/selectDictionaries', (req, res) => {
                                        crosses: crosses,  letters: letters});
                                 }
                             });
-                        }
-                    });
-                }
-            });
-        }
-    });
-});
-
-app.get('/personalia', isAuth, (req, res) => {
-    let saints = [];
-    let personalia = [];
-    let personSignConnections = [];
-    connection.query('Select * from saints', function (error, results) {
-        if (error) {
-            console.log(error);
-        }
-        else {
-            saints = results.sort((a, b) => {return(a.name < b.name)?-1:1});
-            connection.query(`Select p.id, p.name, s.name saint,
-            p.birthProximity, p.powerProximity, p.deathProximity,
-            p.dateBirth, p.datePower, p.dateDeath from personalia p
-             left join saints s on p.idPatron=s.id`, function (error, results) {
-                if (error) {
-                    console.log(error);
-                }
-                else {
-                    personalia = results.sort((a, b) => {return(a.name < b.name)?-1:1});
-                    connection.query(`Select ps.idPrince, ps.idSign, s.type from princeSign ps
-                    left join signs s on s.id = ps.idSign`, function (error, results) {
-                        if (error) {
-                            console.log(error);
-                        }
-                        else {
-                            personSignConnections = results;
-                            res.render('personalia', { saints: saints, personalia: personalia, personSignConnections: personSignConnections });
                         }
                     });
                 }
@@ -430,8 +401,6 @@ function getDBIndex(group) {
 const grandRequest = `SELECT DISTINCT tp.id typeId, tp.obvImageGroup, tp.revImageGroup, st1.id obv, st2.id rev,
     st1.imgType obvType, st2.imgType revType,
     st1.description obvDescription, st2.description revDescription, st1.isCoDirectional codirect,
-    per.name attributionPersona, pub.name attributionPublication, pub.year attributionYear,
-    pA.page attributionPage, per.datePower, per.dateDeath, per.id personId,
     CASE
         WHEN tp.obvImageGroup = 0 THEN tp.obvText
         WHEN tp.obvImageGroup = 1 THEN CONCAT(saints1.name, ' ', saints1.epithet)
@@ -459,17 +428,16 @@ const grandRequest = `SELECT DISTINCT tp.id typeId, tp.obvImageGroup, tp.revImag
     left join crosses crosses2 on crosses2.id = tp.revImageId
     left join letters letters1 on letters1.id = tp.obvImageId
     left join letters letters2 on letters2.id = tp.revImageId
-    left join publicationAttribution pA on pA.idObverse = st1.id
-    left join personalia per on per.id = pA.idPersona
-    left join publications pub on pub.id = pA.idPublication
     where st1.isObverse and st1.id!=st2.id`;
 
 app.get('/dukesStamps',
     (req, res) => {
-        connection.query(`select magna.*, count(sps.id) cnt
+        connection.query(`select magna.*, count(sps.id) cnt, per.name issuerName
         from (${grandRequest}) magna
               inner join specimens sps on magna.obv = sps.idObv and magna.rev = sps.idRev
-              where personId = ${req.query['0']}
+              left join publicationAttribution pA on pA.idObverse = sps.idObv
+              left join personalia per on per.id = pA.idPersona
+              where per.id = ${req.query['0']}
               group by sps.idObv, sps.idRev`,
                 function (error, results) {
                   if (error) console.log(error);
@@ -478,12 +446,27 @@ app.get('/dukesStamps',
         );
 });
 
-app.get('/dukesList',
+app.get('/dukes',
     (req, res) => {
-        connection.query(`select pr.*, count(st.id) 
+        connection.query(`select *
+        from personalia p
+        order by p.dateBirth`,
+                function (error, results) {
+                  if (error) console.log(error);
+                  else return res.json (results);
+                }
+        );
+});
+
+app.get('/dukesList', 
+    (req, res) => {
+        console.log (req.session);
+        console.log (passport);
+        connection.query(`select pr.*, count(st.id), i.id pic, i.imgType ext 
         FROM publicationAttribution pa 
         left join stamps st on pa.idObverse = st.id
         left join personalia pr on pa.idPersona = pr.id
+        left join illustrations i on i.idPerson = pr.id
         group by pr.name
         order by pr.dateBirth`,
                 function (error, results) {
@@ -577,6 +560,25 @@ app.get('/specimenCoordinates',
             );
 });
 
+app.get('/typeAttributions',
+        (req, res) => {
+            let searchString =
+            `select pr.*, pb.name publication, pb.year, pa.page 
+            FROM publicationAttribution pa 
+            left join stamps st on pa.idObverse = st.id
+            left join personalia pr on pa.idPersona = pr.id
+            left join publications pb on pb.id = pa.idPublication 
+            where st.id = ${req.query['0']}
+            order by pb.year `;
+
+            connection.query(searchString,
+                    function (error, results) {
+                      if (error) console.log(error);
+                      else return res.json (results);
+                    }
+            );
+});
+
 app.get('/type',
         (req, res) => {
             console.log(req.query);
@@ -598,63 +600,10 @@ app.get('/type',
             );
 });
 
-app.get('/types', isAuth, (req, res) => {
-    let saints = [];
-    let types = [];
-    connection.query('Select * from saints', function (error, results) {
-        if (error) {
-            console.log(error);
-        }
-        else {
-            saints = results.sort((a, b) => {return(a.name < b.name)?-1:1});
-            connection.query(`select t.id, s1.name obvName, s1.epithet obvEpithet, s2.name revName, s2.epithet revEpithet
-            from types t
-            left join saints s1 on s1.id = t.obvImageId
-            left join saints s2 on s2.id = t.revImageId`, function (error, results) {
-                if (error) {
-                    console.log(error);
-                }
-                else {
-                    types = results;
-                    res.render('types', { saints: saints, types: types });
-                }
-            });
-        }
-    });
-});
-
 // Supplementary routes
-
-app.get('/admin-route', isAdmin, (req, res) => {
-    res.send('<h1>You are admin</h1><p><a href="/logout">Logout and reload</a></p>');
-});
 
 app.listen(3000, function () {
     console.log('App listening on port 3000!')
-});
-
-app.get('/notAuthorized', (req, res) => {
-    res.send('<h1>You are not authorized to view the resource </h1><p><a href="/login">Retry Login</a></p>');
-});
-
-app.get('/notAuthorizedAdmin', (req, res) => {
-    res.send('<h1>You are not authorized to view the resource as you are not the admin of the page  </h1><p><a href="/login">Retry to Login as admin</a></p>');
-});
-
-app.get('/userAlreadyExists', (req, res) => {
-    res.send('<h1>Sorry This username is taken </h1><p><a href="/register">Register with different username</a></p>');
-});
-
-app.post('/addSaint', (req, res) => {
-    connection.query('Insert into saints(name, epithet, story) values(?,?,?) ', [req.body.saintName, req.body.saintEpithet, req.body.saintDescription], function (error) {
-        if (error) {
-            console.log(error);
-        }
-        else {
-            console.log(`Successfully added ${req.body.saintName} ${req.body.saintEpithet}`);
-        }
-    });
-    res.redirect('/contribute');
 });
 
 app.post('/addSign', (req, res) => {
@@ -674,6 +623,22 @@ app.post('/addSign', (req, res) => {
     });
     res.redirect('/contribute');
 });
+
+app.post('/addAttribution',
+    (req, res) => {
+       var form = new formidable.IncomingForm();
+       form.parse(req, function(err, fields, files) {
+         console.log(fields);
+           const {idPersona, idPublication, idObv, page} = fields;
+           connection.query(`Insert into publicationAttribution(idPersona, idPublication, idObverse, page)
+                values(?,?,?,?)`, [idPersona, idPublication, idObv, page],
+                   function (error, results) {
+                     if (error) console.log(error);
+                     else return res.json (results);
+                   }
+           );
+      });
+ });
 
 app.post('/specimen',
     (req, res) => {
@@ -838,4 +803,42 @@ app.post('/addType', (req, res) => {
         }
     });
     res.redirect('/types');
+});
+
+app.post('/sendEmail', (req, res) => {
+    let form = new formidable.IncomingForm();
+    let transporter = nodemailer.createTransport({
+        host: config.email.host,
+        port: 587,
+        secure: false,
+        auth:     {
+            user: config.email.user, 
+            pass: config.email.pass
+        },
+      });
+
+    form.parse(req, async function(err, fields, files) {
+        const {email, description} = fields;
+
+        let result = await transporter.sendMail({
+        from: config.email.user,
+        to: config.email.recipient,
+        subject: `Message from ${email}`,
+        text: description,
+        attachments: [
+            {
+                filename: files.obverse.originalFilename,
+                path: files.obverse.filepath,
+                cid: files.obverse.originalFilename 
+            },
+            {
+                filename: files.reverse.originalFilename,
+                path: files.reverse.filepath,
+                cid: files.reverse.originalFilename
+            }
+            ]
+        })
+        return res.json(result);
+   });
+
 });

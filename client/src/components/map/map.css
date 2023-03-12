@@ -5,8 +5,9 @@
 }
 
 .leaflet-container {
-  height: 80vh;
-  width: 90%;
-  margin-left: auto;
-  margin-right: auto;
+  height: 90vh;
+  margin-left: 20px;
+  margin-right: 20px;
+  border-radius: 5px;
+  min-width: 320px;
 }

@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { setAuthToken } from '../../helpers/set-auth-token';
+import axios from 'axios';
 import './app.css';
 
 import {
@@ -7,11 +8,11 @@ import {
 } from "react-router-dom";
 
 import LoginForm from '../login-form';
-import Personalia from '../personalia-list'; 
+import Attribute from '../attribute'; 
 import Stamps from '../stamps-list';
-import PersonaliaNew from '../personalia-new';
 import PrivateRoute from "../route-guard";
 import AppHeader from "../app-header";
+import AppFooter from "../app-footer";
 import MapComponent from "../map";
 import SearchPanel from '../search-panel';
 import Type from '../type';
@@ -24,8 +25,20 @@ export default class App extends Component {
       setAuthToken(token);
   }
 
-  render() {
+  componentDidMount() {
+    axios
+      .get("https://ipapi.co/json/")
+      .then((response) => {
+        if (["Russia", "Belarus", "Ukraine", "Moldova"].includes(response.data.country_name) &&
+          window.location.pathname===`/` && !this.token) 
+            window.location.replace(`/attribute`);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
 
+  render() {
     const StampsWrapper = (props) => {
       const params = useParams();
       return <Stamps {...{...props, match: {params}} } />
@@ -85,14 +98,16 @@ export default class App extends Component {
             </div>
           } />
 
-          <Route exact path="/personalia/add" element = {
-            <PrivateRoute>
-              <PersonaliaNew />
-            </PrivateRoute>
+          <Route path="/attribute" element={
+            <div>
+              <Attribute />
+            </div>
           } />
+
           <Route path="/login" element={<LoginForm />} />
           <Route path="/logout" element={<LoginForm />} />
         </Routes>
+        <AppFooter />
       </Router>
     );
   }

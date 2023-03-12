@@ -2,6 +2,7 @@ import React, { Component }  from 'react';
 import SearchStatus from '../search-panel/search-status';
 import SearchAddMore from '../search-panel/search-add-more';
 import SearchPagination from '../search-panel/search-pagination';
+import Loading from '../loading';
 
 import InternalService from '../../services/internal-api';
 import './stamps-list.css';
@@ -14,7 +15,8 @@ export default class Stamps extends Component {
     stampsList: null,
     currentPage: 1,
     obv: null,
-    rev: null
+    rev: null,
+    loading: true
   };
 
   requestDetails (side, group, index) {
@@ -34,7 +36,6 @@ export default class Stamps extends Component {
       case "letters":
         this.stampsData.getLetter([index])
           .then((body) => {
-            console.log (body.data)
             this.setState({[side]: body.data});
           });
         break;
@@ -75,6 +76,7 @@ export default class Stamps extends Component {
           });
       }
     }
+    this.setState({loading: false});
   }
 
   setCurrentPage(page) {
@@ -110,15 +112,16 @@ export default class Stamps extends Component {
 
     if (!stampsList) {
       return (
-        <h3>List of stamps is empty.</h3>
+        <Loading />
       )
     }
 
     if (obv===null) obv = searchParams["o"];
     if (rev===null) rev = searchParams["r"];
+    if (obv===undefined && stampsList[0].issuerName) obv = stampsList[0].issuerName;
 
     const selection = [obv, rev, stampsList.length];
-    const params = stampsList.length === 0 ? searchParams : stampsList[0].id;
+    const params = stampsList.length === 0 ? searchParams : stampsList[0].typeId;
 
     const addMore = (localStorage.getItem("token") &&
         !Object.values(searchParams).includes('null') && ('o' in searchParams)) ?

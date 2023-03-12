@@ -1,6 +1,7 @@
 import React, { Component }  from 'react';
 import References from './references';
 import AddSpecimen from './add-specimen';
+import AddAttribution from './add-attribution';
 
 import InternalService from '../../services/internal-api';
 import './type.css';
@@ -11,7 +12,8 @@ export default class Type extends Component {
 
   state = {
     showType: null,
-    addNewSpecimen: false
+    typeAttributions: null,
+    mode: ""
   };
 
   componentDidMount() {
@@ -20,6 +22,15 @@ export default class Type extends Component {
       .then((body) => {
         this.setState({
           showType: body.data,
+        });
+      });
+
+      this.stampsData.getTypeAttributions([searchParams["o"]])
+      .then((body) => {
+       
+        console.log(body.data);
+                this.setState({
+          typeAttributions: body.data,
         });
       });
   }
@@ -56,13 +67,25 @@ export default class Type extends Component {
     });
   }
 
+  renderAttributions(arr) {
+    return arr.map(({name, datePower, dateDeath, year, publication, page}) => {
+      const uniqueKey = `${datePower}-${dateDeath}-${year}`;
+      return (
+        <div key={uniqueKey}>
+          <br /><b>Attributed to</b> {name} ({datePower} - {dateDeath}) <br />
+          in <i>{year}</i> <span className="date">{publication}</span> С. {page}.
+        </div>
+      );
+    });
+  }
+
   canAdd(auth) {
-    if (auth && !this.state.addNewSpecimen)
+    if (auth && this.state.mode==="")
       return (
         <button className="btn btn-secondary" title="Add another specimen"
           onClick={()=>{
             this.setState({
-              addNewSpecimen: true
+              mode: "addNewSpecimen"
             });
           }}>
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-plus" viewBox="0 0 16 16">
@@ -72,23 +95,48 @@ export default class Type extends Component {
       )
   }
 
+  canAddAttribution(auth) {
+    if (auth && this.state.mode==="")
+      return (
+        <button className="btn btn-secondary" title="Add attribution"
+          onClick={()=>{
+            if (this.state.typeAttributions.length===0) {
+              this.setState({
+                mode: "addAttribution"
+              });
+            }
+            else 
+              if (window.confirm(`This type is already attributed to ${this.state.typeAttributions[0].name}. Are you sure you want to add an alternative attribution?`))
+                {
+                  this.setState({
+                    mode: "addAttribution"
+                  });
+                }     
+          }}>
+          Attribute
+        </button>
+      )
+  }
+
   completeAdd() {
     this.componentDidMount();
     this.setState({
-      addNewSpecimen: false
+      mode: ""
     });
   }
 
   render() {
 
-    const { showType, addNewSpecimen } = this.state;
+    const { showType, typeAttributions, mode } = this.state;
 
-    if (!showType) {
+    if (!showType || !typeAttributions) {
       return (
         <h3>List of stamps is empty.</h3>
       )
     }
+
     const addMore = this.canAdd(localStorage.getItem("token") ? true : false);
+    const addAttribution = this.canAddAttribution(localStorage.getItem("token") ? true : false);
     console.log (showType);
     const obvPath = `${this.stampsData._apiBase}/stamps/${showType[0].idObv}.${showType[0].obvType}`;
     const revPath = `${this.stampsData._apiBase}/stamps/${showType[0].idRev}.${showType[0].revType}`;
@@ -100,12 +148,7 @@ export default class Type extends Component {
                 </div>
               ) : null;
 
-    const attribution = showType[0].attributionPersona ? (
-                <div>
-                  <br /><b>Attributed to</b> {showType[0].attributionPersona} ({showType[0].datePower} - {showType[0].dateDeath}) <br />
-                  in <i>{showType[0].attributionYear}</i> <span className="date">{showType[0].attributionPublication}</span> С. {showType[0].attributionPage}.
-                </div>
-              ) : null;
+    const attribution = typeAttributions.length>0 ? this.renderAttributions(typeAttributions) : null;
 
     let codirect = null;
     if (showType[0].codirect!==null) {
@@ -113,17 +156,45 @@ export default class Type extends Component {
       else codirect = (<div>↑↓</div>);
     }
 
-    const items = addNewSpecimen ?
-      (<AddSpecimen onAdded={() => this.completeAdd()} defaultValues = {[showType[0].idObv, showType[0].idRev]} />)
-      : this.renderItems(showType);
+    // Right-side panel (specimens, or adding new data forms)
+    let items, itemsHeader, panelClass;
 
-    const itemsHeader = addNewSpecimen ?
-    (<div><span className="greyish"><a
-          onClick = {()=>this.setState({addNewSpecimen: false})}
-    title="Cancel">x</a></span>  <h5>Add a new specimen of the type</h5></div>)
-    : (<h5>Known specimens</h5>);
-
-    const panelClass = addNewSpecimen ? "items-pad" : "items";
+    switch (mode) {
+      case "addNewSpecimen":
+        items = 
+          (<AddSpecimen 
+            onAdded={() => this.completeAdd()} 
+            defaultValues = {[showType[0].idObv, showType[0].idRev]} />);
+  
+        itemsHeader = 
+          (<div><span className="greyish"><a
+                onClick = {()=>this.setState({mode: ""})}
+                title="Cancel">x</a></span>&nbsp;
+                <h5>Add a new specimen of the type</h5></div>);
+    
+        panelClass = "items-pad";
+        break;
+      case "addAttribution":
+        items = 
+          (<AddAttribution 
+            onAdded={() => this.completeAdd()} 
+            defaultValues = {[showType[0].idObv, showType[0].idRev]} />);
+  
+        itemsHeader = 
+          (<div><span className="greyish"><a
+                onClick = {()=>this.setState({mode: ""})}
+                title="Cancel">x</a></span>&nbsp;
+                <h5>Add a new attribution</h5></div>);
+    
+        panelClass = "items-pad";
+        break;
+      default:
+        items = this.renderItems(showType);
+  
+        itemsHeader = (<h5>Known specimens</h5>);
+    
+        panelClass = "items";
+    }
 
     return (
       <div className="main-grid">
@@ -137,6 +208,7 @@ export default class Type extends Component {
             {description}
             {codirect}
             {attribution}
+            {addAttribution}
         </div>
         <div>
           {itemsHeader}
