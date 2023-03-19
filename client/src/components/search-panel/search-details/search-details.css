@@ -3,3 +3,36 @@
   height: 100px;
   width: 50%;
 }
+
+/* =============================================
+* RADIO BUTTONS
+=============================================== */
+
+#radios label {
+  cursor: pointer;
+  position: relative;
+}
+
+#radios label + label {
+  margin-left: 15px;
+}
+
+input[type="radio"] {
+  opacity: 0; /* hidden but still tabable */
+  position: absolute;
+}
+
+input[type="radio"] + span {
+  padding: 5px;
+  border-radius: 5px;
+  display: inline-block;
+}
+
+input[type="radio"]:checked + span {
+  color: #D9E7FD;
+  background-color: #375a7f;
+}
+
+input[type="radio"]:focus + span {
+  color: #fff;
+}

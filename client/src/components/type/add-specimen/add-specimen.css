@@ -23,6 +23,10 @@
   display: grid;
 }
 
+.spec-column {
+  width: calc((100%)*0.55);
+}
+
 hr {
   border: 0.5px solid #00bc8c;
 }

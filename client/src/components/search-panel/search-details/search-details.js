@@ -14,11 +14,11 @@ export default class SearchDetails extends Component {
       const contents = text.startsWith('http') ?
           (<img height='50px' className="rounded" src={text} />) : text;
       return (
-        <div className="form-check radio-item paddington" key={uniqueKey}
+        <div id="radios" className=" radio-item paddington" key={uniqueKey}
                         onChange={() => this.props.onChange(group, id)}>
           <label className="form-check-label">
             <input className="form-check-input" type="radio" name={uniqueGroup} value={id} />
-            {contents}
+            <span>{contents}</span>
           </label>
         </div>
       );

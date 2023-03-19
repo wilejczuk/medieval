@@ -163,14 +163,14 @@ export default class Type extends Component {
       case "addNewSpecimen":
         items = 
           (<AddSpecimen 
-            onAdded={() => this.completeAdd()} 
+            onAdded={() => this.completeAdd()}
             defaultValues = {[showType[0].idObv, showType[0].idRev]} />);
   
         itemsHeader = 
           (<div><span className="greyish"><a
                 onClick = {()=>this.setState({mode: ""})}
                 title="Cancel">x</a></span>&nbsp;
-                <h5>Add a new specimen of the type</h5></div>);
+                <div className="footer-widget-heading"><h3>Add a new specimen of the type</h3></div></div>);
     
         panelClass = "items-pad";
         break;
@@ -181,17 +181,17 @@ export default class Type extends Component {
             defaultValues = {[showType[0].idObv, showType[0].idRev]} />);
   
         itemsHeader = 
-          (<div><span className="greyish"><a
+          (<div className="footer-widget-heading"><span className="greyish"><a
                 onClick = {()=>this.setState({mode: ""})}
                 title="Cancel">x</a></span>&nbsp;
-                <h5>Add a new attribution</h5></div>);
+                <h3>Add a new attribution</h3></div>);
     
         panelClass = "items-pad";
         break;
       default:
         items = this.renderItems(showType);
   
-        itemsHeader = (<h5>Known specimens</h5>);
+        itemsHeader = (<div className="footer-widget-heading"><h3>Known specimens</h3></div>);
     
         panelClass = "items";
     }

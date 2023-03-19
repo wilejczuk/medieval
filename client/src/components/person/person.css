@@ -1,0 +1,14 @@
+.story-description {
+    font-size: small;
+    opacity: 0.5;
+    text-indent: 1.5em;
+    text-align: justify;
+}
+
+.dukes-family {
+    font-size: small;
+}
+
+.padding-bottom {
+    padding-bottom: 10px;
+}

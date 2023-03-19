@@ -1,5 +1,4 @@
 import React, { Component }  from 'react';
-import InternalService from '../../../services/internal-api';
 
 import './search-status.css';
 
@@ -18,7 +17,6 @@ export default class SearchStatus extends Component {
     if (window.location.href.includes("duke")) {
       return (
         <div className="grid-element">
-          Possible emitent: {selection[0]}
         </div>
       )
     }    

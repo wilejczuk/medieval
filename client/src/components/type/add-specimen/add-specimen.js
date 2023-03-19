@@ -2,6 +2,7 @@ import React, { Component }  from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import InternalService from '../../../services/internal-api';
 import Loading from '../../loading';
+import Upload from '../upload';
 
 import './add-specimen.css';
 
@@ -60,19 +61,14 @@ export default class AddSpecimen extends Component {
     return (
       <Formik
          initialValues={{ size: '', weight: '', findingSpot: '', findingSpotComments: '',
-           publication: '', page: '', number: '',
+           publication: '', page: '', number: '', picture: null, 
            idObv: defaultValues[0], idRev: defaultValues[1]}}
 
          validate={values => {
            const errors = {};
-           /*
-           if (!values.size) {
-             errors.size = 'required';
-           }
-           if (!values.weight) {
-             errors.weight = 'required';
-           }
-           */
+          if (!values.picture) {
+            errors.picture = 'required';
+          }
            if (!values.page) {
              errors.page = 'required';
            }
@@ -89,7 +85,7 @@ export default class AddSpecimen extends Component {
              loading: true
            });
            setTimeout(() => {
-             this.sendSpecimen(values.file, values.size, values.weight, values.findingSpot,
+             this.sendSpecimen(values.picture, values.size, values.weight, values.findingSpot,
                values.findingSpotComments,
                values.publication, values.idObv, values.idRev, values.page, values.number);
              setSubmitting(false);
@@ -97,83 +93,79 @@ export default class AddSpecimen extends Component {
          }}
        >
          {({ isSubmitting, setFieldValue }) => (
-           <Form className="form-add" encType="multipart/form-data">
-             <div className='form-line double-element'>
-                <div>
-                  Picture
-                </div>
-                <input required id="file" name="file" type="file"
-                  accept="image/png, image/jpeg" onChange={(event) => {
-                  setFieldValue("file", event.currentTarget.files[0]);
-                }} />
-             </div>
+           <Form className='spec-column' encType="multipart/form-data">
+                     <div>
+                         <Upload onChange={(file) => {
+                              setFieldValue("picture", file);
+                            }} />
+                         <ErrorMessage className="error-message" name="picture" component="div" />
 
-             <div className='form-line'>
-                <div className='form-inside'>
-                  Size, mm
-                  <ErrorMessage className="error-message" name="size" component="div" />
-                </div>
-                <Field className='number-field' type="number" name="size" />
-             </div>
+                         <div className='form-line'>
+                            <div className='form-inside'>
+                              Size, mm
+                            </div>
+                            <Field  type="number" name="size" />
+                         </div>
 
-             <div className='form-line'>
-                <div className='form-inside'>
-                  Weight, g
-                  <ErrorMessage className="error-message" name="weight" component="div" />
-                </div>
-                <Field className='number-field' type="number" name="weight" />
-              </div>
+                         <div className='form-line'>
+                            <div className='form-inside'>
+                              Weight, g
+                            </div>
+                            <Field  type="number" name="weight" />
+                          </div>
 
-              <div className='form-line double-element'>
-                 <div>
-                   Finding spot
-                   <ErrorMessage className="error-message" name="findingSpot" component="div" />
-                 </div>
-                 <Field className="long-text" type="text" name="findingSpot" />
-              </div>
+                          <div className='form-line double-element'>
+                             <div className="long-text-caption">
+                               Finding spot
+                             </div>
+                             <Field className='spot' type="text" name="findingSpot" />
+                          </div>
 
-              <div className='form-line double-element'>
-                 <div>
-                   Additional comments
-                   <ErrorMessage className="error-message" name="findingSpotComments" component="div" />
-                 </div>
-                 <Field className="long-text" type="text" name="findingSpotComments" />
-              </div>
+                          <div className='form-line double-element'>
+                             <div className="long-text-caption">
+                               Additional comments
+                             </div>
+                             <Field component="textarea" className='spot-comments' name="findingSpotComments" />
+                          </div>
 
-              <div>
-                <hr />
-                <b>First publication</b>
-              </div>
+                          <div>
+                            <hr />
+                            <b>First publication</b>
+                            <div>
+                                <ErrorMessage className="error-message" name="publication" component="div" />
+                              </div>
+                          </div>
 
-              <div className='form-line double-element'>
-                  <div>
-                    <ErrorMessage className="error-message" name="publication" component="div" />
-                  </div>
-                  <Field as="select" name="publication" className="long-text">
-                      <option key="defOption" ></option>
-                      {litOptions}
-                  </Field>
-              </div>
+                          <div className='form-line double-element'>
 
-              <div className='form-line'>
-                 <div className='form-inside'>
-                   Page
-                   <ErrorMessage className="error-message" name="page" component="div" />
-                 </div>
-                 <Field type="number" name="page" />
-              </div>
+                              <Field as="select" name="publication" className="publication">
+                                  <option key="defOption" ></option>
+                                  {litOptions}
+                              </Field>
+                          </div>
 
-              <div className='form-line'>
-                 <div className='form-inside'>
-                  Number
-                   <ErrorMessage className="error-message" name="number" component="div" />
-                 </div>
-                 <Field type="text" name="number" />
-               </div>
+                          <div className='form-line'>
+                             <div className='form-inside'>
+                               Page
+                               <ErrorMessage className="error-message" name="page" component="div" />
+                             </div>
+                             <Field type="number" name="page" />
+                          </div>
 
-             <button type="submit" disabled={isSubmitting}>
-               Submit
-             </button>
+                          <div className='form-line'>
+                             <div className='form-inside'>
+                               Number
+                               <ErrorMessage className="error-message" name="number" component="div" />
+                             </div>
+                             <Field type="text" name="number" />
+                          </div>
+
+                          <div className="sub-call-to-action">
+                          <hr />
+                            <button className="button-two" type="submit" disabled={isSubmitting}><span>Save to the database!</span></button>
+                          </div> 
+
+                         </div>
            </Form>
          )}
        </Formik>

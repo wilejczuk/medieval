@@ -18,6 +18,7 @@ import SearchPanel from '../search-panel';
 import Type from '../type';
 import AddType from '../type/add-type';
 import Intro from '../intro';
+import Person from '../person/person';
 
 export default class App extends Component {
   token = localStorage.getItem("token");
@@ -52,6 +53,11 @@ export default class App extends Component {
     const AddTypesWrapper = (props) => {
       const params = useParams();
       return <AddType {...{...props, match: {params}} } />
+    }
+
+    const PersonWrapper = (props) => {
+      const params = useParams();
+      return <Person {...{...props, match: {params}} } />
     }
 
     return (
@@ -93,7 +99,7 @@ export default class App extends Component {
 
           <Route path="/duke/:id" element={
             <div className='selection-interface'>
-              <Intro />
+              <PersonWrapper />
               <StampsWrapper />
             </div>
           } />

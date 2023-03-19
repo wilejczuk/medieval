@@ -2,6 +2,7 @@ import React, { Component }  from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import InternalService from '../../../services/internal-api';
 import Loading from '../../loading';
+import Upload from '../upload';
 
 import './add-type.css';
 
@@ -48,27 +49,27 @@ export default class AddType extends Component {
     const searchParams = this.props.match.params;
 
     const itemsHeader =
-    (<div><h5>Add one specimen of the type</h5></div>);
-
-    const panelClass = "items-pad";
+    (<h3>Add one specimen of the type</h3>);
 
     return (
           <Formik
-             initialValues={{ size: '', weight: '', findingSpot: '', findingSpotComments: '',
+             initialValues={{ size: '', weight: '', findingSpot: '', findingSpotComments: '', 
+              picture: null, obvStamp: null, revStamp: null, orient: null,
                publication: '', page: '', number: '', obvGroup: searchParams['ot'],
                obvDescription: searchParams['o'], revDescription: searchParams['r'],
                revGroup: searchParams['rt'], obvIndex: searchParams['oi'], revIndex: searchParams['ri']}}
 
              validate={values => {
                const errors = {};
-               /*
-               if (!values.size) {
-                 errors.size = 'required';
-               }
-               if (!values.weight) {
-                 errors.weight = 'required';
-               }
-               */
+              if (!values.picture) {
+                errors.picture = 'required';
+              }
+              if (!values.obvStamp) {
+                errors.obvStamp = 'required';
+              }
+              if (!values.revStamp) {
+                errors.revStamp = 'required';
+              }
                if (!values.page) {
                  errors.page = 'required';
                }
@@ -105,13 +106,29 @@ export default class AddType extends Component {
                <Form className="form-add" encType="multipart/form-data">
                  <div className="main-grid">
                    <div className="paddings">
-                       <div className='double-element'>
-                          <h5>{searchParams['o']} | stamp drawing</h5>
-                          <input className='paddington' required id="obvStamp" name="obvStamp" type="file"
-                            accept="image/png, image/jpeg" onChange={(event) => {
-                            setFieldValue("obvStamp", event.currentTarget.files[0]);
-                          }} />
-                       </div>
+                       <div className="footer-widget-heading">
+                          <h3>{searchParams['o']} | stamp drawing</h3>
+                          <div className='limited'>
+                            <Upload onChange={(file) => {
+                                console.log(file);
+                                setFieldValue("obvStamp", file);
+                              }} />
+                            <div className="side-orient">  
+                                <div role="group" aria-labelledby="my-radio-group">
+                                  <span id="my-radio-group">Side orientation</span>
+                                  <label>
+                                    <Field type="radio" name="orient" value="1" />
+                                    <span>↑↑</span>
+                                  </label> <br />
+                                  <label>
+                                    <Field type="radio" name="orient" value="0" />
+                                    <span>↑↓</span>
+                                  </label>
+                                </div>
+                              <ErrorMessage className="error-message" name="obvStamp" component="div" />
+                            </div>
+                          </div>
+                       </div> 
                        <div className='form-line'>
                           <Field component="textarea" className='text-area' name="obvDescription" />
                           <ErrorMessage className="error-message" name="obvDescription" component="div" />
@@ -119,12 +136,16 @@ export default class AddType extends Component {
 
                        <div className="paddington"></div>
 
-                       <div className='double-element'>
-                          <h5>{searchParams['r']} | stamp drawing</h5>
-                          <input className='paddington' required id="revStamp" name="revStamp" type="file"
-                            accept="image/png, image/jpeg" onChange={(event) => {
-                            setFieldValue("revStamp", event.currentTarget.files[0]);
-                          }} />
+                       <div className="footer-widget-heading">
+                          <h3>{searchParams['r']} | stamp drawing</h3>
+                          <div className='limited'>
+                            <Upload onChange={(file) => {
+                                setFieldValue("revStamp", file);
+                              }} />
+                            <div className="side-orient">  
+                              <ErrorMessage className="error-message" name="revStamp" component="div" />
+                            </div>  
+                          </div>
                        </div>
                        <div className='form-line'>
                           <Field component="textarea" className='text-area' name="revDescription" />
@@ -132,74 +153,56 @@ export default class AddType extends Component {
                         </div>
                         <br />
 
-                        <div role="group" aria-labelledby="my-radio-group">
-                          <span className="side-orient" id="my-radio-group">Side orientation</span>
-                          <label className="side-orient">
-                            <Field type="radio" name="orient" value="↑↑" />
-                             ↑↑
-                          </label>
-                          <label className="side-orient">
-                            <Field type="radio" name="orient" value="↑↓" />
-                            ↑↓
-                          </label>
-                        </div>
+                        
                    </div>
 
-                   <div>
+                   <div className="footer-widget-heading">
                      {itemsHeader}
-                     <div className={panelClass}>
-                         <div className='form-line double-element'>
-                            <div>
-                              Picture
-                            </div>
-                            <input required id="picture" name="picture" type="file"
-                              accept="image/png, image/jpeg" onChange={(event) => {
-                              setFieldValue("picture", event.currentTarget.files[0]);
+                     <div>
+                         <Upload onChange={(file) => {
+                              setFieldValue("picture", file);
                             }} />
-                         </div>
+                         <ErrorMessage className="error-message" name="picture" component="div" />
 
                          <div className='form-line'>
                             <div className='form-inside'>
                               Size, mm
-                              <ErrorMessage className="error-message" name="size" component="div" />
                             </div>
-                            <Field className='number-field' type="number" name="size" />
+                            <Field  type="number" name="size" />
                          </div>
 
                          <div className='form-line'>
                             <div className='form-inside'>
                               Weight, g
-                              <ErrorMessage className="error-message" name="weight" component="div" />
                             </div>
-                            <Field className='number-field' type="number" name="weight" />
+                            <Field  type="number" name="weight" />
                           </div>
 
                           <div className='form-line double-element'>
-                             <div>
+                             <div className="long-text-caption">
                                Finding spot
-                               <ErrorMessage className="error-message" name="findingSpot" component="div" />
                              </div>
-                             <Field className="long-text" type="text" name="findingSpot" />
+                             <Field className='spot' type="text" name="findingSpot" />
                           </div>
 
                           <div className='form-line double-element'>
-                             <div>
+                             <div className="long-text-caption">
                                Additional comments
-                               <ErrorMessage className="error-message" name="findingSpotComments" component="div" />
                              </div>
-                             <Field className="long-text" type="text" name="findingSpotComments" />
+                             <Field component="textarea" className='spot-comments' name="findingSpotComments" />
                           </div>
 
                           <div>
                             <hr />
                             <b>First publication</b>
+                            <div>
+                                <ErrorMessage className="error-message" name="publication" component="div" />
+                              </div>
                           </div>
 
                           <div className='form-line double-element'>
-                              <div>
-                                <ErrorMessage className="error-message" name="publication" component="div" />
-                              </div>
-                              <Field as="select" name="publication" className="long-text">
+
+                              <Field as="select" name="publication" className="publication">
                                   <option key="defOption" ></option>
                                   {litOptions}
                               </Field>
@@ -215,15 +218,17 @@ export default class AddType extends Component {
 
                           <div className='form-line'>
                              <div className='form-inside'>
-                              Number
+                               Number
                                <ErrorMessage className="error-message" name="number" component="div" />
                              </div>
                              <Field type="text" name="number" />
-                           </div>
+                          </div>
 
-                         <button type="submit" disabled={isSubmitting}>
-                           Submit
-                         </button>
+                          <div className="sub-call-to-action">
+                          <hr />
+                            <button className="button-two" type="submit" disabled={isSubmitting}><span>Save to the database!</span></button>
+                          </div> 
+
                          </div>
                        </div>
                      </div>

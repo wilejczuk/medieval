@@ -284,12 +284,15 @@ app.get('/selectDictionaries', (req, res) => {
     let signs = [];
     let crosses = [];
     let letters = [];
-    connection.query('Select * from saints', function (error, results) {
+    connection.query(`Select s.id, s.name, s.epithet, count(s.id) density from saints s 
+                        left join personalia p on s.id = p.idPatron 
+                        GROUP by s.name 
+                        order by density desc, s.name`, function (error, results) {
         if (error) {
             console.log(error);
         }
         else {
-            saints = results.sort((a, b) => {return(a.name < b.name)?-1:1});
+            saints = results;
             connection.query('Select * from signs', function (error, results) {
                 if (error) {
                     console.log(error);
@@ -314,6 +317,35 @@ app.get('/selectDictionaries', (req, res) => {
                             });
                         }
                     });
+                }
+            });
+        }
+    });
+});
+
+app.get('/dukeData', (req, res) => {
+    let duke = {};
+    let descendants = [];
+    connection.query(`select p.*, p2.name father, s.name patron
+                    from personalia p 
+                    left join personalia p2 on p.idFather = p2.id 
+                    left JOIN saints s on p.idPatron = s.id
+                    where p.id = ${req.query['0']}`, function (error, results) {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            duke = results[0];
+            connection.query(`select p3.name son, p3.id
+                    from personalia p 
+                    right join personalia p3 on p.id = p3.idFather 
+                    where p.id = ${req.query['0']}`, function (error, results) {
+                if (error) {
+                    console.log(error);
+                }
+                else {
+                    descendants = results;
+                    return res.json ({duke: duke, descendants: descendants});
                 }
             });
         }
@@ -450,7 +482,7 @@ app.get('/dukes',
     (req, res) => {
         connection.query(`select *
         from personalia p
-        order by p.dateBirth`,
+        order by p.dateDeath`,
                 function (error, results) {
                   if (error) console.log(error);
                   else return res.json (results);
@@ -675,7 +707,7 @@ async function branchCases (typeId, err, fields, files, cb) {
     let indObv, indRev;
 
      await connection.query(`Insert into stamps (idType, isObverse, description, isCoDirectional, imgType)
-        values(?,?,?,?,?)`, [typeId, 1, obvDescription, orient === "↑↑", extObv],
+        values(?,?,?,?,?)`, [typeId, 1, obvDescription, orient, extObv],
          function (error, results) {
             if (error) {
                 console.log(error);

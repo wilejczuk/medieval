@@ -26,15 +26,8 @@ export default class SearchPanel extends Component {
   render() {
     return (
       <form action='search' onSubmit={this.formSubmit}>
-        <div className="obv-drop">
-          <h5>Obverse |</h5>
-          <SearchBand side="obv" onChange={(group, id) => this.onChangeValue ("obv", group, id) }/>
-        </div>
-        <div className="obv-drop">
-          <h5>Reverse |</h5>
-          <SearchBand side="rev" onChange={(group, id) => this.onChangeValue ("rev", group, id) }/>
-        </div>
-
+        <SearchBand side="obv" onChange={(group, id) => this.onChangeValue ("obv", group, id) }/>
+        <SearchBand side="rev" onChange={(group, id) => this.onChangeValue ("rev", group, id) }/>
         <div className='main-button'>
           <button type="submit" className="btn btn-primary">Find</button>
         </div>

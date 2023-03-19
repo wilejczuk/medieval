@@ -52,7 +52,11 @@ export default class AddAttribution extends Component {
       powerProximity,
       deathProximity
     }) => {
-      const title = `${name} (${birthProximity?'≈':''}${dateBirth} ϡ ${powerProximity?'≈':''}${datePower} † ${deathProximity?'≈':''}${dateDeath})`;
+      const birth = dateBirth ? `${birthProximity?'≈':''}${dateBirth} ` : '';
+      const power = datePower ? `ϡ ${powerProximity?'≈':''}${datePower} ` : '';
+      const death = dateDeath ? `† ${deathProximity?'≈':''}${dateDeath}` : '';
+      const dates = `${birth}${power}${death}`;
+      const title = (dates === '') ? `${name}` : `${name} (${dates})`;
       const uniqueKey = `duke${id}`;
       return (
         <option key={uniqueKey} value={id}>{title}</option>

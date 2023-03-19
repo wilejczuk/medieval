@@ -1,3 +1,18 @@
 .band {
   width: 100%;
 }
+
+.sides-panel {
+  padding: 10px 0px 10px 20px;
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  margin-bottom: auto;
+}
+
+.sides-panel h5 {
+  text-transform: capitalize;
+}
+
+.long-column {
+  grid-column: span 2;
+}

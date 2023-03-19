@@ -74,6 +74,10 @@ export default class InternalService {
     return await axios.get(`${this._apiBase}dukesStamps`, {params: params});
   }
 
+  async getDuke(params) {
+    return await axios.get(`${this._apiBase}dukeData`, {params: params});
+  }
+
   async getDictionaries() {
     return await axios.get(`${this._apiBase}selectDictionaries`);
   }
@@ -152,7 +156,7 @@ export default class InternalService {
       formData.append("revStamp", revStamp);
       if (obvDescription!=='') formData.append("obvDescription", obvDescription);
       if (revDescription!=='') formData.append("revDescription", revDescription);
-      if (orient!=='') formData.append("orient", orient);
+      if (orient!==null) formData.append("orient", orient);
 
       // Specimens table
       formData.append("picture", picture);

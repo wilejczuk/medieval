@@ -30,9 +30,6 @@ export default class SearchBand extends Component {
           letters: body.data.letters.map (({id, symbol}) => {
             return {id: id, text: symbol}
           })
-          /*letters: this.stampsData.symbolsEnum.map ((item, index) => {
-            return {id: index, text: item}
-          })*/
         });
       });
   }
@@ -54,22 +51,23 @@ export default class SearchBand extends Component {
     }
 
     return (
-      <div>
-        <div className="btn-group band" role="group" aria-label="Image Type">
-          <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("saints")}>Saint</button>
-          <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("letters")}>Letter</button>
-          <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("signs")}>Tamgha</button>
-          <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("crosses")}>Cross</button>
-          <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("text")}>Other</button>
-        </div>
+      <div className="sides-panel">
+        <h5>{side}erse |</h5>
+          <div className="btn-group band" role="group" aria-label="Image Type">
+            <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("saints")}>Saint</button>
+            <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("letters")}>Letter</button>
+            <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("signs")}>Tamgha</button>
+            <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("crosses")}>Cross</button>
+            <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("text")}>Other</button>
+          </div>
 
-        <div className="type-content">
-          <SearchDetails  side={side}
-                          group={currentSelection}
-                          arr={this.state[currentSelection]}
-                          onChange={(group, id) => onChange(group, id)}
-          />
-        </div>
+          <div className="type-content long-column">
+            <SearchDetails  side={side}
+                            group={currentSelection}
+                            arr={this.state[currentSelection]}
+                            onChange={(group, id) => onChange(group, id)}
+            />
+          </div>
       </div>
     )
   }
