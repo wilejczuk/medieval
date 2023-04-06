@@ -10,12 +10,9 @@ export default class Intro extends Component {
     dukesList: null
   };
 
-  // renderLoginOrLogout - полностью уехал в LoginForm
-
   componentDidMount() {
     this.data.getDukes()
         .then((body) => {
-          console.log(body.data)
           this.setState({
             dukesList: body.data
           });
@@ -49,7 +46,12 @@ export default class Intro extends Component {
         deathProximity,
         pic, ext
       }) => {
-      const title = `${name} (${birthProximity?'≈':''}${dateBirth} ϡ ${powerProximity?'≈':''}${datePower} † ${deathProximity?'≈':''}${dateDeath})`;
+
+      const birth = dateBirth ? `${birthProximity?'≈':''}${dateBirth} ` : '';
+      const power = datePower ? `ϡ ${powerProximity?'≈':''}${datePower} ` : '';
+      const death = dateDeath ? `† ${deathProximity?'≈':''}${dateDeath}` : '';
+      const dates = `${birth}${power}${death}`;
+      const title = `${name} (${dates})`;
       function link() {window.location.replace(`/duke/${id}`)};
       const uniqueKey = `duke${id}`;
       let className = `box `;
@@ -98,16 +100,3 @@ export default class Intro extends Component {
     )
   }
 }
-
-// authenticate - полностью уехал в LoginForm
-
-/*
-    const needLogin = this.renderLoginOrLogout(localStorage.getItem("token") ? true : false);
-
-
-      <div className="padding-left">
-        <p>Welcome to the seals database! You can <a href="/search">search it</a>, select items <a href='/'>on the map</a>, 
-        or review items by the issuer below:</p>
-        {needLogin}
-      </div>
-*/

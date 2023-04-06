@@ -284,9 +284,9 @@ app.get('/selectDictionaries', (req, res) => {
     let signs = [];
     let crosses = [];
     let letters = [];
-    connection.query(`Select s.id, s.name, s.epithet, count(s.id) density from saints s 
+    connection.query(`Select s.id, s.name, s.epithet, s.subGroup, count(s.id) density from saints s 
                         left join personalia p on s.id = p.idPatron 
-                        GROUP by s.name 
+                        GROUP by s.name, s.epithet
                         order by density desc, s.name`, function (error, results) {
         if (error) {
             console.log(error);
@@ -397,6 +397,7 @@ app.get('/stamps',
             connection.query(`select magna.*, count(sps.id) cnt
 from (${grandRequest}) magna
                   inner join specimens sps on magna.obv = sps.idObv and magna.rev = sps.idRev
+                  where not (magna.obvImageGroup=0 and magna.revImageGroup = 0 and magna.obvImageId = 1 and magna.revImageId = 1)
                   group by sps.idObv, sps.idRev`,
                     function (error, results) {
                       if (error) console.log(error);
@@ -431,7 +432,7 @@ function getDBIndex(group) {
 }
 
 const grandRequest = `SELECT DISTINCT tp.id typeId, tp.obvImageGroup, tp.revImageGroup, st1.id obv, st2.id rev,
-    st1.imgType obvType, st2.imgType revType,
+    st1.imgType obvType, st2.imgType revType, tp.obvImageId, tp.revImageId,
     st1.description obvDescription, st2.description revDescription, st1.isCoDirectional codirect,
     CASE
         WHEN tp.obvImageGroup = 0 THEN tp.obvText
@@ -482,7 +483,7 @@ app.get('/dukes',
     (req, res) => {
         connection.query(`select *
         from personalia p
-        order by p.dateDeath`,
+        order by p.name`,
                 function (error, results) {
                   if (error) console.log(error);
                   else return res.json (results);
@@ -492,15 +493,13 @@ app.get('/dukes',
 
 app.get('/dukesList', 
     (req, res) => {
-        console.log (req.session);
-        console.log (passport);
         connection.query(`select pr.*, count(st.id), i.id pic, i.imgType ext 
         FROM publicationAttribution pa 
         left join stamps st on pa.idObverse = st.id
         left join personalia pr on pa.idPersona = pr.id
         left join illustrations i on i.idPerson = pr.id
         group by pr.name
-        order by pr.dateBirth`,
+        order by pr.dateDeath`,
                 function (error, results) {
                   if (error) console.log(error);
                   else return res.json (results);
@@ -510,8 +509,6 @@ app.get('/dukesList',
 
 app.get('/parametrizedStamps',
         (req, res) => {
-            console.log(req.query);
-
             let condition1Exists = "", condition3Exists = "";
             let condition1OppositeExists = "", condition3OppositeExists = "";
 
@@ -537,23 +534,28 @@ app.get('/parametrizedStamps',
                         )
                       )
                     ) magna on magna.obv = sps.idObv and magna.rev = sps.idRev
+                    where not (magna.obvImageGroup=0 and magna.revImageGroup = 0 and magna.obvImageId = 1 and magna.revImageId = 1)
                   group by sps.idObv, sps.idRev`;
-                  console.log(searchString);
-            connection.query(searchString,
+                console.log(searchString);
+                  connection.query(searchString,
                     function (error, results) {
                       if (error) console.log(error);
                       else return res.json (results);
                     }
             );
 });
+// condition "not (tp.obvImageGroup=0 and tp.revImageGroup = 0 and tp.obvImageId = 1 and tp.revImageId = 1)"
+// can be added to hide coins in search
 
 app.get('/specimensGeo',
         (req, res) => {
-            console.log ("Executing automatic request");
             let searchString =
-            `select id, imgType, idObv, idRev, geo, latitude, longitude
+            `select id, imgType, idObv, idRev, geo, latitude, longitude, count(id) cnt
             from specimens
-            where geo is not null`;
+            where geo is not null 
+            and latitude is not null 
+            group by latitude, longitude
+            order by cnt`;
 
             connection.query(searchString,
                     function (error, results) {
@@ -632,10 +634,29 @@ app.get('/type',
             );
 });
 
+app.get('/locationSpecimens',
+        (req, res) => {
+            let searchString =
+                    `select s.*, pub.name, pub.year, ps.page, ps.number from
+                     (select sps.*, magna.*
+                      from specimens sps
+                      inner join (${grandRequest}) magna on magna.obv = sps.idObv and magna.rev = sps.idRev
+                        where sps.geo='${req.query['0']}') s
+                              left join publicationSpecimen ps on ps.idSpecimen = s.id
+                              left join publications pub on pub.id = ps.idPublication`;
+                  console.log(searchString);
+            connection.query(searchString,
+                    function (error, results) {
+                      if (error) console.log(error);
+                      else return res.json (results);
+                    }
+            );
+});
+
 // Supplementary routes
 
 app.listen(3000, function () {
-    console.log('App listening on port 3000!')
+    console.log('App listening on port 3000!');
 });
 
 app.post('/addSign', (req, res) => {
@@ -677,10 +698,10 @@ app.post('/specimen',
        var form = new formidable.IncomingForm();
        form.parse(req, function(err, fields, files) {
          console.log(fields);
-           const {size, weight, findingSpot, findingSpotComments, publication, idObv, idRev, page, number} = fields;
+           const {size, weight, findingSpot, findingSpotComments, poster, publication, idObv, idRev, page, number} = fields;
            let ext = files.picture.originalFilename.split('.').pop();
-           connection.query(`Insert into specimens(idObv, idRev, geo, geoComment, weight, maxDiameter, imgType)
-                values(?,?,?,?,?,?,?)`, [idObv, idRev, findingSpot, findingSpotComments, weight, size, ext],
+           connection.query(`Insert into specimens(idObv, idRev, geo, geoComment, weight, maxDiameter, imgType, poster)
+                values(?,?,?,?,?,?,?,?)`, [idObv, idRev, findingSpot, findingSpotComments, weight, size, ext, poster],
                    function (error, results) {
                      if (error) console.log(error);
                      else {

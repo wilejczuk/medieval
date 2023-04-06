@@ -1,3 +1,7 @@
+body {
+  min-width:880px;
+}
+
 a{
   text-decoration:none
 }
@@ -11,7 +15,6 @@ a{
   align-content: flex-start;
   min-height:100px;
   max-height:250px;
-  min-width:880px;
   color:#eee;
   margin-bottom: 10px
 }
@@ -78,7 +81,7 @@ a{
 }
 .sides, .info{
   flex: 0 0 auto;
-  width:50%
+  width:50%;
 }
 .info{
   width:100%;
@@ -106,4 +109,8 @@ a{
 @keyframes grow{
   0% { transform: scale(1) translateY(0px)}
   50% { transform: scale(1.2) translateY(-100px)}
+}
+
+.right {
+  text-align: right;
 }

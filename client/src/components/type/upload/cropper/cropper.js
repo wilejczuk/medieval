@@ -15,7 +15,6 @@ export default function Cropper({ src, onChangeSelection }) {
   const [crop, setCrop] = React.useState(fullSelection); // <Crop>()
 
   function getCroppedImg(image, pixelCrop) {
-    console.log(image);
     const canvas = document.createElement('canvas');
     canvas.width = pixelCrop.width;
     canvas.height = pixelCrop.height;

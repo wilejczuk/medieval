@@ -1,5 +1,5 @@
 import React, { Component }  from 'react';
-import { MapContainer, TileLayer, Popup, Marker  } from "react-leaflet";
+import { MapContainer, TileLayer  } from "react-leaflet";
 import InternalService from '../../services/internal-api';
 import MapMarker from './map-marker';
 
@@ -20,12 +20,12 @@ export default class MapComponent extends Component {
       .then((body) => {
         let allGeo = [];
         //console.log(body);
-        body.data.map(({geo, idObv, idRev, id, imgType, latitude, longitude}) => {
-          if (latitude) allGeo.push({idObv, idRev, id, imgType, lat:latitude, lon:longitude});
+        body.data.map(({geo, idObv, idRev, id, imgType, latitude, longitude, cnt}) => {
+          if (latitude) allGeo.push({idObv, idRev, id, imgType, lat:latitude, lon:longitude, geo, cnt});
           else {
             this.geoCoordinates.getCoordinates(geo).then((geocode) => {
               if (geocode.data.length>0) {
-                allGeo.push({idObv, idRev, id, imgType, lat:geocode.data[0].lat, lon:geocode.data[0].lon});
+                allGeo.push({idObv, idRev, id, imgType, lat:geocode.data[0].lat, lon:geocode.data[0].lon, geo, cnt});
                 this.geoCoordinates.setCoordinates([id, geocode.data[0].lat, geocode.data[0].lon]);
               }
             });

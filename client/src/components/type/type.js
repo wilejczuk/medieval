@@ -1,7 +1,7 @@
 import React, { Component }  from 'react';
-import References from './references';
 import AddSpecimen from './add-specimen';
 import AddAttribution from './add-attribution';
+import Specimens from '../specimens-list/specimens-list';
 
 import InternalService from '../../services/internal-api';
 import './type.css';
@@ -27,52 +27,19 @@ export default class Type extends Component {
 
       this.stampsData.getTypeAttributions([searchParams["o"]])
       .then((body) => {
-       
-        console.log(body.data);
-                this.setState({
+        this.setState({
           typeAttributions: body.data,
         });
       });
   }
 
-  renderItems(arr) {
-    let existingSpecimens = [];
-    let unpackedReferences = [];
-    arr.map(({id, imgType, name, year, page, number, geo, weight, maxDiameter}) => {
-      if (existingSpecimens.indexOf(id) === -1) {
-        existingSpecimens.push(id);
-        unpackedReferences.push({id, imgType, geo, weight, maxDiameter, refs: [{name, year, page, number}]});
-      } else {
-        unpackedReferences.find(o => o.id === id)['refs'].push({name, year, page, number});
-      }
-    });
-
-    return unpackedReferences.map(({id, imgType, refs, geo, weight, maxDiameter}) => {
-        const path = `${this.stampsData._apiBase}specimens/${id}.${imgType}`;
-        const uniqueKey = `specimen${id}`;
-        let params = '';
-        if (geo) params = `${geo}. `;
-        if (weight) params += `Weight: ${weight} g. `;
-        if (maxDiameter) params += `Diameter: ${maxDiameter} mm`;
-
-        return (
-          <div key={uniqueKey} className="items-pad">
-            <img src={path} height="150" alt="Specimen" />
-            <div className="paddington">
-              {params}
-            </div>
-            <References refs={refs}/>
-          </div>
-        );
-    });
-  }
-
   renderAttributions(arr) {
-    return arr.map(({name, datePower, dateDeath, year, publication, page}) => {
+    return arr.map(({id, name, datePower, dateDeath, year, publication, page}) => {
       const uniqueKey = `${datePower}-${dateDeath}-${year}`;
+      const dukeLink = `/duke/${id}`
       return (
         <div key={uniqueKey}>
-          <br /><b>Attributed to</b> {name} ({datePower} - {dateDeath}) <br />
+          <br /><b>Attributed to</b> <a href={dukeLink}>{name}</a> ({datePower} - {dateDeath}) <br />
           in <i>{year}</i> <span className="date">{publication}</span> С. {page}.
         </div>
       );
@@ -137,7 +104,7 @@ export default class Type extends Component {
 
     const addMore = this.canAdd(localStorage.getItem("token") ? true : false);
     const addAttribution = this.canAddAttribution(localStorage.getItem("token") ? true : false);
-    console.log (showType);
+
     const obvPath = `${this.stampsData._apiBase}/stamps/${showType[0].idObv}.${showType[0].obvType}`;
     const revPath = `${this.stampsData._apiBase}/stamps/${showType[0].idRev}.${showType[0].revType}`;
 
@@ -189,7 +156,7 @@ export default class Type extends Component {
         panelClass = "items-pad";
         break;
       default:
-        items = this.renderItems(showType);
+        items = (<Specimens items={showType} />);
   
         itemsHeader = (<div className="footer-widget-heading"><h3>Known specimens</h3></div>);
     

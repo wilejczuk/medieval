@@ -18,8 +18,8 @@ export default class SearchBand extends Component {
     this.stampsData.getDictionaries()
       .then((body) => {
         this.setState({
-          saints: body.data.saints.map(({id, name, epithet}) => {
-            return {id: id, text: `${name} (${epithet})`}
+          saints: body.data.saints.map(({id, name, epithet, subGroup}) => {
+            return {id: id, text: `${name} (${epithet})`, subGroup: subGroup}
           }),
           signs: body.data.signs.map(({id, type}) => {
             return {id: id, text: `${this.stampsData._apiBase}signs/${id}.${type}`}

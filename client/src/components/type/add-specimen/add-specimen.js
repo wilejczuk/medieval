@@ -34,8 +34,8 @@ export default class AddSpecimen extends Component {
     })
   }
 
- sendSpecimen (picture, size, weight, findingSpot, findingSpotComments, publication, idObv, idRev, page, number) {
-    this.stampsData.addSpecimen(picture, size, weight, findingSpot, findingSpotComments, publication, idObv, idRev, page, number)
+ sendSpecimen (picture, size, weight, findingSpot, findingSpotComments, poster, publication, idObv, idRev, page, number) {
+    this.stampsData.addSpecimen(picture, size, weight, findingSpot, findingSpotComments, poster, publication, idObv, idRev, page, number)
       .then(response => {
         this.setState({
           loading: false
@@ -61,7 +61,7 @@ export default class AddSpecimen extends Component {
     return (
       <Formik
          initialValues={{ size: '', weight: '', findingSpot: '', findingSpotComments: '',
-           publication: '', page: '', number: '', picture: null, 
+           publication: '', page: '', number: '', picture: null, poster: localStorage.getItem("user"),
            idObv: defaultValues[0], idRev: defaultValues[1]}}
 
          validate={values => {
@@ -86,7 +86,7 @@ export default class AddSpecimen extends Component {
            });
            setTimeout(() => {
              this.sendSpecimen(values.picture, values.size, values.weight, values.findingSpot,
-               values.findingSpotComments,
+               values.findingSpotComments, values.poster,
                values.publication, values.idObv, values.idRev, values.page, values.number);
              setSubmitting(false);
            }, 400);

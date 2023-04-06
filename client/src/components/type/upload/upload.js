@@ -65,10 +65,7 @@ const Upload = (props) => {
   const shownElement = preview ? (<Cropper onChangeSelection={(file) => {
                                     props.onChange(file);
                                   }} src={preview} />) 
-  : <p>{shownMessage}</p>;
-
- //style={{ backgroundImage: `url(${preview})` }}
- //   
+  : <p>{shownMessage}</p>; 
 
   return (
     <>

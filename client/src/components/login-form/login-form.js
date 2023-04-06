@@ -66,6 +66,8 @@ export default class LoginForm extends Component {
   
         //set JWT token to local
         localStorage.setItem("token", token);
+        localStorage.setItem("user", username);
+        this.props.onLogin(localStorage.getItem("user")); 
   
         //set token to axios common header
         setAuthToken(token);

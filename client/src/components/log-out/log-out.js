@@ -7,6 +7,7 @@ export default class LogOut extends Component {
     event.preventDefault();
     setAuthToken(null);
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     window.location = '/';
   }
 

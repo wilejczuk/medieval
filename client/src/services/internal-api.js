@@ -62,6 +62,10 @@ export default class InternalService {
     return await axios.get(`${this._apiBase}type`, {params: params});
   }
 
+  async getLocationSpecimens(params) {
+    return await axios.get(`${this._apiBase}locationSpecimens`, {params: params});
+  }
+
   async getTypeAttributions(params) {
     return await axios.get(`${this._apiBase}typeAttributions`, {params: params});
   }
@@ -110,13 +114,14 @@ export default class InternalService {
     );
   }
 
-  async addSpecimen(picture, size, weight, findingSpot, findingSpotComments, publication, idObv, idRev, page, number) {
+  async addSpecimen(picture, size, weight, findingSpot, findingSpotComments, poster, publication, idObv, idRev, page, number) {
     let formData = new FormData();
     formData.append("picture", picture);
     if (size!=='') formData.append("size", size);
     if (weight!=='') formData.append("weight", weight);
     if (findingSpot!=='') formData.append("findingSpot", findingSpot);
     if (findingSpotComments!=='') formData.append("findingSpotComments", findingSpotComments);
+    formData.append("poster", poster);
     formData.append("idObv", idObv);
     formData.append("idRev", idRev);
     formData.append("publication", publication);
@@ -144,7 +149,9 @@ export default class InternalService {
     obvStamp, revStamp, obvDescription, revDescription, orient,
     picture, size, weight, findingSpot, findingSpotComments, publication, page, number) {
       let formData = new FormData();
-
+      console.log(obvStamp)
+      console.log(revStamp)
+      console.log(picture)
       // Types table
       formData.append("obvGroup", obvGroup);
       if (revGroup!=='null') formData.append("revGroup", revGroup);

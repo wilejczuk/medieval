@@ -17,14 +17,18 @@ import MapComponent from "../map";
 import SearchPanel from '../search-panel';
 import Type from '../type';
 import AddType from '../type/add-type';
-import Intro from '../intro';
-import Person from '../person/person';
+import Location from '../location/location';
+import Intro from '../intro';import Person from '../person/person';
 
 export default class App extends Component {
   token = localStorage.getItem("token");
   if (token) {
       setAuthToken(token);
   }
+
+  state = {
+    loggedUser: localStorage.getItem("user")?localStorage.getItem("user"):"visitor"
+  };
 
   componentDidMount() {
     axios
@@ -37,6 +41,11 @@ export default class App extends Component {
       .catch((error) => {
         console.log(error);
       });
+
+    setInterval(() => {
+      //API queried to prevent falling asleep
+      axios.get(`https://server.kievan-rus.online/dukes`);
+    }, 300000);     
   }
 
   render() {
@@ -48,6 +57,11 @@ export default class App extends Component {
     const TypesWrapper = (props) => {
       const params = useParams();
       return <Type {...{...props, match: {params}} } />
+    }
+
+    const LocationWrapper = (props) => {
+      const params = useParams();
+      return <Location {...{...props, match: {params}} } />
     }
 
     const AddTypesWrapper = (props) => {
@@ -62,7 +76,7 @@ export default class App extends Component {
 
     return (
       <Router>
-      <AppHeader />
+      <AppHeader loggedUser={this.state.loggedUser} />
         <Routes>
           <Route path="/" element={
             <div className='selection-interface'>
@@ -74,6 +88,12 @@ export default class App extends Component {
           <Route path="/type/:o/:r" element={
             <div>
               <TypesWrapper />
+            </div>
+          } />
+
+          <Route path="/location/:geo" element={
+            <div>
+              <LocationWrapper />
             </div>
           } />
 
@@ -110,8 +130,12 @@ export default class App extends Component {
             </div>
           } />
 
-          <Route path="/login" element={<LoginForm />} />
-          <Route path="/logout" element={<LoginForm />} />
+          <Route path="/login" element={<LoginForm onLogin={
+            (loggedUser)=> {
+              this.setState({loggedUser: loggedUser});
+          }
+            } />} />
+          <Route path="/logout" element={<LoginForm onLogin={(loggedUser)=> {this.setState({loggedUser: loggedUser})}} />} />
         </Routes>
         <AppFooter />
       </Router>

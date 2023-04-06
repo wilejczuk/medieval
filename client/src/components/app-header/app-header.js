@@ -14,6 +14,7 @@ export default class AppHeader extends Component {
       backgroundImage: `url('${this.stampsData._clientBase}favicon.ico')`
     };
     
+    const { loggedUser } = this.props;
     
     return (
       <div className="header">
@@ -21,6 +22,7 @@ export default class AppHeader extends Component {
           <a  href="/" className="author logo" style={sectionStyle}></a><br />
         </div>
         <div className="sides">
+        <div className="meta right">Welcome, { loggedUser }!</div>
           <a href="/search" className="menu">SEARCH</a>
         </div>
         <div className="info">
@@ -28,7 +30,7 @@ export default class AppHeader extends Component {
           <h1>KIEVAN RUS'</h1>
           <div className="meta">
             for documents and fur money
-        </div>
+          </div>
 </div>
 </div>
     )

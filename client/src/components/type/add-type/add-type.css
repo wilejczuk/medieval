@@ -75,6 +75,10 @@ hr {
   width: 200px;
 }
 
+.side-orient div label {
+  cursor: pointer;
+}
+
 /*Button Call to Action*/
 
 .sub-call-to-action{

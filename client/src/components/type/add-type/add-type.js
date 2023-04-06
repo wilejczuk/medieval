@@ -110,7 +110,6 @@ export default class AddType extends Component {
                           <h3>{searchParams['o']} | stamp drawing</h3>
                           <div className='limited'>
                             <Upload onChange={(file) => {
-                                console.log(file);
                                 setFieldValue("obvStamp", file);
                               }} />
                             <div className="side-orient">  
@@ -160,6 +159,7 @@ export default class AddType extends Component {
                      {itemsHeader}
                      <div>
                          <Upload onChange={(file) => {
+                           console.log(file)
                               setFieldValue("picture", file);
                             }} />
                          <ErrorMessage className="error-message" name="picture" component="div" />
