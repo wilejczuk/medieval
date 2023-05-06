@@ -19,7 +19,6 @@ export default class MapComponent extends Component {
     this.geoCoordinates.getLocations()
       .then((body) => {
         let allGeo = [];
-        //console.log(body);
         body.data.map(({geo, idObv, idRev, id, imgType, latitude, longitude, cnt}) => {
           if (latitude) allGeo.push({idObv, idRev, id, imgType, lat:latitude, lon:longitude, geo, cnt});
           else {
@@ -35,23 +34,52 @@ export default class MapComponent extends Component {
       });
   };
 
+  renderSites(arr) {
+    
+    return arr.map(({id, cnt, geo}) => {
+      const uniqueKey = `geo_${id}`;
+      const href = `/location/${geo}`;
+      const spanDynamicStyle = {
+        width: cnt
+      };
+
+      return (
+        <li key={uniqueKey}>
+          <span className = "striped" style={spanDynamicStyle} wdith='200px'>&nbsp;</span> 
+          &nbsp; <a href={href}>{geo} ({cnt})</a>
+        </li>
+      );
+    });
+  }
+
   render() {
     var center = [this.state.lat, this.state.lng];
 
     const { geos } = this.state;
+
+    const sitesList = this.renderSites(geos.slice(0).reverse());
     const coordinates = geos.map((el) => {
       const uniqueKey = `spec_${el.id}`
       return (<MapMarker key={uniqueKey} parameters={el} />)
     });
 
     return (
-      <MapContainer center={[this.state.lat, this.state.lng]} zoom={this.state.zoom} scrollWheelZoom={false}>
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {coordinates}
-      </MapContainer>
+      <div className='map-stats'>
+        <div className='footer-widget-heading padding-both'> 
+          <h3>By find area</h3>
+          <ul className='nodot geo-names-container'> 
+            {sitesList}
+          </ul> 
+        </div>
+
+        <MapContainer center={[this.state.lat, this.state.lng]} zoom={this.state.zoom} scrollWheelZoom={false}>
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          {coordinates}
+        </MapContainer>
+      </div>
     );
   }
 }

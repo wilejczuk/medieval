@@ -18,7 +18,7 @@ const ExtractJWT = passportJWT.ExtractJwt;
 const nodemailer = require('nodemailer');
 const config = require('./config.json');
 
-const env = "test";
+const env = "prod";
  
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", config[env].url);
@@ -326,10 +326,13 @@ app.get('/selectDictionaries', (req, res) => {
 app.get('/dukeData', (req, res) => {
     let duke = {};
     let descendants = [];
-    connection.query(`select p.*, p2.name father, s.name patron
+    connection.query(`select p.*, p2.name father, p3.name husband, p4.id idWife, p4.name wife, s.name patron, b.name_ru branch
                     from personalia p 
                     left join personalia p2 on p.idFather = p2.id 
-                    left JOIN saints s on p.idPatron = s.id
+                    left join personalia p3 on p.idHusband = p3.id
+                    left join personalia p4 on p.id = p4.idHusband
+                    left join saints s on p.idPatron = s.id
+                    left join branches b on b.id = p.idBranch
                     where p.id = ${req.query['0']}`, function (error, results) {
         if (error) {
             console.log(error);
@@ -397,7 +400,7 @@ app.get('/stamps',
             connection.query(`select magna.*, count(sps.id) cnt
 from (${grandRequest}) magna
                   inner join specimens sps on magna.obv = sps.idObv and magna.rev = sps.idRev
-                  where not (magna.obvImageGroup=0 and magna.revImageGroup = 0 and magna.obvImageId = 1 and magna.revImageId = 1)
+                  where not (magna.obvImageGroup=0 and magna.revImageGroup = 0 and magna.obvImageId > 0 and magna.revImageId > 0)
                   group by sps.idObv, sps.idRev`,
                     function (error, results) {
                       if (error) console.log(error);
@@ -463,6 +466,14 @@ const grandRequest = `SELECT DISTINCT tp.id typeId, tp.obvImageGroup, tp.revImag
     left join letters letters2 on letters2.id = tp.revImageId
     where st1.isObverse and st1.id!=st2.id`;
 
+const compositePublications = `(select p.id, p.year,
+CONCAT(GROUP_CONCAT(a.name_ru ORDER BY p.id, pa.id SEPARATOR ', '), ', ', p.name, ', ', p.place, '.') name  
+from publications p 
+left join publicationAuthor pa on p.id = pa.idPublication 
+left join authors a on a.id = pa.idAuthor 
+left join journals j on j.id = p.idJournal 
+GROUP by p.id)`
+
 app.get('/dukesStamps',
     (req, res) => {
         connection.query(`select magna.*, count(sps.id) cnt, per.name issuerName
@@ -493,13 +504,18 @@ app.get('/dukes',
 
 app.get('/dukesList', 
     (req, res) => {
-        connection.query(`select pr.*, count(st.id), i.id pic, i.imgType ext 
+        const condition = req.query['0'] ? `where pr.idBranch=${req.query['0']}` : ``;
+        
+        connection.query(`select pr.*, count(st.id), i.id pic, i.imgType ext, br.name_ru branch 
         FROM publicationAttribution pa 
         left join stamps st on pa.idObverse = st.id
         left join personalia pr on pa.idPersona = pr.id
+        left join branches br on br.id = pr.idBranch
         left join illustrations i on i.idPerson = pr.id
+        ${condition} 
         group by pr.name
-        order by pr.dateDeath`,
+        order by pr.dateDeath 
+        limit 24`,
                 function (error, results) {
                   if (error) console.log(error);
                   else return res.json (results);
@@ -534,7 +550,7 @@ app.get('/parametrizedStamps',
                         )
                       )
                     ) magna on magna.obv = sps.idObv and magna.rev = sps.idRev
-                    where not (magna.obvImageGroup=0 and magna.revImageGroup = 0 and magna.obvImageId = 1 and magna.revImageId = 1)
+                    where not (magna.obvImageGroup=0 and magna.revImageGroup = 0 and magna.obvImageId > 0 and magna.revImageId > 0)
                   group by sps.idObv, sps.idRev`;
                 console.log(searchString);
                   connection.query(searchString,
@@ -553,9 +569,18 @@ app.get('/specimensGeo',
             `select id, imgType, idObv, idRev, geo, latitude, longitude, count(id) cnt
             from specimens
             where geo is not null 
+            group by geo
+            order by cnt`;
+
+            /* logic behind it: aggregate results with the same coordinates, but different names, e.g. 
+            Полоцк and Полацк
+
+            But it breaks the logics of coordinates updating, so may need to invent something else
+
             and latitude is not null 
             group by latitude, longitude
-            order by cnt`;
+            
+            */
 
             connection.query(searchString,
                     function (error, results) {
@@ -569,7 +594,7 @@ app.get('/literature',
         (req, res) => {
             let searchString =
             `select *
-            from publications pub
+            from ${compositePublications} pub
             order by pub.year`;
 
             connection.query(searchString,
@@ -601,7 +626,7 @@ app.get('/typeAttributions',
             FROM publicationAttribution pa 
             left join stamps st on pa.idObverse = st.id
             left join personalia pr on pa.idPersona = pr.id
-            left join publications pb on pb.id = pa.idPublication 
+            left join ${compositePublications} pb on pb.id = pa.idPublication 
             where st.id = ${req.query['0']}
             order by pb.year `;
 
@@ -624,7 +649,7 @@ app.get('/type',
                       inner join (${grandRequest}) magna on magna.obv = sps.idObv and magna.rev = sps.idRev
                         where sps.idObv=${req.query['0']} and sps.idRev=${req.query['1']}) s
                               left join publicationSpecimen ps on ps.idSpecimen = s.id
-                              left join publications pub on pub.id = ps.idPublication`;
+                              left join ${compositePublications} pub on pub.id = ps.idPublication`;
                   console.log(searchString);
             connection.query(searchString,
                     function (error, results) {
@@ -643,8 +668,24 @@ app.get('/locationSpecimens',
                       inner join (${grandRequest}) magna on magna.obv = sps.idObv and magna.rev = sps.idRev
                         where sps.geo='${req.query['0']}') s
                               left join publicationSpecimen ps on ps.idSpecimen = s.id
-                              left join publications pub on pub.id = ps.idPublication`;
+                              left join ${compositePublications} pub on pub.id = ps.idPublication`;
                   console.log(searchString);
+            connection.query(searchString,
+                    function (error, results) {
+                      if (error) console.log(error);
+                      else return res.json (results);
+                    }
+            );
+});
+
+app.get('/publicationSpecimens',
+        (req, res) => {
+            let searchString =
+                    `select p.id, p.name, p.year, count(ps.id) count 
+                    from ${compositePublications} p 
+                    left join publicationSpecimen ps on p.id = ps.idPublication 
+                    GROUP by p.id
+                    order by count(ps.id) desc`;
             connection.query(searchString,
                     function (error, results) {
                       if (error) console.log(error);

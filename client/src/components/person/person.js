@@ -15,7 +15,6 @@ export default class Person extends Component {
 
     this.data.getDuke([searchParams["id"]])
         .then((body) => {
-          console.log(body.data)
           this.setState({
             duke: body.data
           });
@@ -40,21 +39,29 @@ export default class Person extends Component {
       return (<br />)
     }
     const descendants = this.renderItems(duke.descendants);
-    console.log(duke.descendants.length);
+
+    const classNames = 'padding-left padding-bottom dukes-family';
 
     const birth = duke.duke.dateBirth ? `${duke.duke.birthProximity?'≈':''}${duke.duke.dateBirth} ` : '';
     const power = duke.duke.datePower ? `ϡ ${duke.duke.powerProximity?'≈':''}${duke.duke.datePower} ` : '';
     const death = duke.duke.dateDeath ? `† ${duke.duke.deathProximity?'≈':''}${duke.duke.dateDeath}` : '';
     const dates = `${birth}${power}${death}`;
-    const father = duke.duke.father ? (<div>Father: <li><a href={duke.duke.idFather}>{duke.duke.father}</a></li></div>) : null;
-    const descendantItems = duke.descendants.length > 0 ? (<div>Descendants: {descendants}</div>) : null;
+    const father = duke.duke.father ? (<div className={classNames}>Father: <li><a href={duke.duke.idFather}>{duke.duke.father}</a></li></div>) : null;
+    const husband = duke.duke.husband ? (<div className={classNames}>Husband: <li><a href={duke.duke.idHusband}>{duke.duke.husband}</a></li></div>) : null;
+    const wife = duke.duke.wife ? (<div className={classNames}>Wife: <li><a href={duke.duke.idWife}>{duke.duke.wife}</a></li></div>) : null;
+    const descendantItems = duke.descendants.length > 0 ? (<div className={classNames}>Descendants: {descendants}</div>) : null;
+    const branchLink = `/${duke.duke.idBranch}`;
+    const branch = duke.duke.branch ? (<div>Branch: <a href={branchLink}>{duke.duke.branch}</a></div>) : null;
 
     return (
       <div>
         <div className="padding-left footer-widget-heading"><h3>{duke.duke.name}</h3></div>
+        <div className="padding-left padding-bottom dukes-family" style={{float: 'right'}}>{branch}</div>
         <div className="padding-left padding-bottom">{dates}</div>
-        <div className="padding-left padding-bottom dukes-family">{father}</div>
-        <div className="padding-left padding-bottom dukes-family">{descendantItems}</div>
+        {father}
+        {husband}
+        {wife}
+        {descendantItems}
         <div className="padding-left story-description">{duke.duke.story}</div>
       </div>
     )

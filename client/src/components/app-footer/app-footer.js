@@ -35,7 +35,7 @@ export default class AppFooter extends Component {
                             <ul>
                                 <li><a href="/">Home</a></li>
                                 <li><a href="#">About us</a></li>
-                                <li><a href="#">Our Services</a></li>
+                                <li><a href="/stats">Database Stats</a></li>
                                 <li><a href="#">Expert Team</a></li>
                                 <li><a href="#">Contact us</a></li>
                                 <li><a href="#">Latest News</a></li>
@@ -66,7 +66,7 @@ export default class AppFooter extends Component {
                 <div className="row">
                     <div className="col-xl-6 col-lg-6 text-center text-lg-left">
                         <div className="copyright-text">
-                            <p>Copyright &copy; 2023, EHU</p>
+                            <p>Copyright &copy; 2023</p>
                         </div>
                     </div>
                     <div className="col-xl-6 col-lg-6 d-none d-lg-block text-right">
@@ -76,7 +76,7 @@ export default class AppFooter extends Component {
                                 <li><a href="#">Terms</a></li>
                                 <li><a href="#">Privacy</a></li>
                                 <li><a href="#">Policy</a></li>
-                                <li><a href="#">Contact</a></li>
+                                <li><a href="/attribute">Contact</a></li>
                             </ul>
                         </div>
                     </div>

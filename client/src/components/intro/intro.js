@@ -11,8 +11,10 @@ export default class Intro extends Component {
   };
 
   componentDidMount() {
-    this.data.getDukes()
+    let searchParam = this.props.match ? this.props.match.params["br"] : null;
+    this.data.getDukes([searchParam])
         .then((body) => {
+          console.log(body.data)
           this.setState({
             dukesList: body.data
           });
@@ -23,7 +25,8 @@ export default class Intro extends Component {
     let firstCN = ``;
     let secondCN = ``;
     let counter = 0;
-    switch(arr.length%3) {
+    const columns = this.props.match ? (arr.length+1)%3 : arr.length%3;
+    switch(columns) {
       case 1:
         firstCN =`first-1uneven`;
         secondCN = `third`;
@@ -44,6 +47,8 @@ export default class Intro extends Component {
         birthProximity,
         powerProximity,
         deathProximity,
+        idBranch,
+        idHusband,
         pic, ext
       }) => {
 
@@ -52,7 +57,7 @@ export default class Intro extends Component {
       const death = dateDeath ? `† ${deathProximity?'≈':''}${dateDeath}` : '';
       const dates = `${birth}${power}${death}`;
       const title = `${name} (${dates})`;
-      function link() {window.location.replace(`/duke/${id}`)};
+      function link() {window.location.href=`/person/${id}`};
       const uniqueKey = `duke${id}`;
       let className = `box `;
 
@@ -63,6 +68,10 @@ export default class Intro extends Component {
           backgroundSize: `cover`,
           textShadow: `2px 2px black`
         };
+
+      const specialGroup = (idBranch === 7) ? <img className='imageShade' height='50' src='./../../../icons/priest.png' /> : 
+        idHusband ? <img className='imageShade' height='50' src='./../../../icons/princess.png' /> : null  ;  
+
 
       counter++;
       switch(counter) {
@@ -77,6 +86,7 @@ export default class Intro extends Component {
       return (
           <div key={uniqueKey} className={className} style={sectionStyle} onClick={link}>
                 {title}
+                <div className='iconGroup'>{specialGroup}</div>
           </div>
       );
     });
@@ -84,17 +94,34 @@ export default class Intro extends Component {
  
   render() {
     const { dukesList } = this.state;
+
+    const styleAll = {
+      backgroundImage: `url('${this.data._apiBase}illustrations/0.jpeg')`,
+      backgroundSize: `cover`,
+      textShadow: `2px 2px black`
+    };
     
-    if (!dukesList) {
-      return (<br />)
+    const seeAll = this.props.match ? (
+      <div key="seeAll" style = {styleAll} className='box box-all' onClick={()=>window.location.href=`/`}>
+        See dukes of different branches
+      </div>) : null;
+
+    if (!dukesList || dukesList.length === 0) {
+      return seeAll
     }
 
     const items = this.renderItems(dukesList);
+    const branch = this.props.match ? 
+      (<div className="padding-both wrapper grid-container">{dukesList[0].branch}</div>) : null;
+
+
 
     return (
       <div className="bottom">
-        <div className="padding-left wrapper">
+        {branch}
+        <div className="padding-both wrapper grid-container">
           {items}
+          {seeAll}
         </div>
       </div>
     )

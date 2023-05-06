@@ -13,11 +13,11 @@ export default class SearchAddMore extends Component {
 
     const relevantView = selection[2]===0 ?
     (
-      <div className="grid-element">
+      <div className="grid-element padding-top">
         <span className="greyish"><a href={link}>Add new</a></span>
       </div>
     ) : (
-      <div className="grid-element">
+      <div className="grid-element padding-top">
         Did not find the stamps' combination of the type<br /> <b>{selection[0]} / {selection[1]}</b>? <span className="greyish"><a href={link}>Add new</a></span>
       </div>
     )

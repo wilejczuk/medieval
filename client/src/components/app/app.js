@@ -17,7 +17,8 @@ import MapComponent from "../map";
 import SearchPanel from '../search-panel';
 import Type from '../type';
 import AddType from '../type/add-type';
-import Location from '../location/location';
+import Location from '../location';
+import Stats from '../stats';
 import Intro from '../intro';import Person from '../person/person';
 
 export default class App extends Component {
@@ -31,6 +32,7 @@ export default class App extends Component {
   };
 
   componentDidMount() {
+    /* Redirect to the attribution page in Russian if needed
     axios
       .get("https://ipapi.co/json/")
       .then((response) => {
@@ -41,7 +43,7 @@ export default class App extends Component {
       .catch((error) => {
         console.log(error);
       });
-
+    */  
     setInterval(() => {
       //API queried to prevent falling asleep
       axios.get(`https://server.kievan-rus.online/dukes`);
@@ -74,14 +76,34 @@ export default class App extends Component {
       return <Person {...{...props, match: {params}} } />
     }
 
+    const IntroWrapper = (props) => {
+      const params = useParams();
+      return <Intro {...{...props, match: {params}} } />
+    }
+
     return (
       <Router>
       <AppHeader loggedUser={this.state.loggedUser} />
         <Routes>
-          <Route path="/" element={
-            <div className='selection-interface'>
+        <Route path="/" element={
+            <div >
               <Intro />
+            </div>
+          } />
+          <Route path="/:br" element={
+            <div>
+              <IntroWrapper />
+            </div>
+          } />
+
+          <Route path="/stats" element={
+            <div>
+              <div className='padding-both bukvitsa'>
+                The estimated number of the published seals of the Kievan Rus’ period is more than 10k.<br /> 
+                However, many of them are illegible, and bring just a little useful information. Our database currently contains almost 200 seals in it, our goal is to have at least 3k listed by the end of 2023.
+              </div>
               <MapComponent />
+              <Stats />
             </div>
           } />
 
@@ -117,7 +139,7 @@ export default class App extends Component {
             </div>
           } />
 
-          <Route path="/duke/:id" element={
+          <Route path="/person/:id" element={
             <div className='selection-interface'>
               <PersonWrapper />
               <StampsWrapper />

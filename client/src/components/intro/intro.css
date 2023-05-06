@@ -2,6 +2,12 @@
   padding-left: 20px;
 }
 
+.padding-both {
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-bottom: 20px;
+}
+
 .padding-bottom {
   padding-bottom: 20px;
 }
@@ -11,6 +17,16 @@
   flex-direction: column;
   gap: 10px;
   width: 50%
+}
+
+.iconGroup {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+.imageShade {
+  opacity: 0.3;
 }
 
 /* DukeBox properties */
@@ -23,11 +39,31 @@
 .wrapper {
     display: grid;
     grid-gap: 10px;
-		grid-template-columns: 1fr 1fr 1fr;
     grid-template-rows: min-content 1fr;
 		color: #444;
     align-items: normal;
 	}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+
+  /* layout for screens between 800px and 1000px */
+  @media (max-width: 1200px) and (min-width: 800px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  /* layout for screens between 600px and 800px */
+  @media (max-width: 800px) and (min-width: 600px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* layout for screens below 600px */
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+   
 
 .box {
   background-color: #444;
@@ -35,7 +71,12 @@
   border-radius: 5px;
   padding: 20px;
   font-size: 150%;
-  cursor: pointer
+  cursor: pointer;
+  position: relative;
+}
+
+.box-all{
+  background-color: #666;
 }
 
 .first-1uneven {

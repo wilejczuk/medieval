@@ -2,10 +2,10 @@ import axios from 'axios';
 
 export default class InternalService {
 
-  _apiBase = 'http://localhost:3000/';
-  _clientBase = 'http://localhost:3001/';
-  //_apiBase = 'https://server.kievan-rus.online/';
-  //_clientBase = 'https://kievan-rus.online/';
+  //_apiBase = 'http://localhost:3000/';
+  //_clientBase = 'http://localhost:3001/';
+  _apiBase = 'https://server.kievan-rus.online/';
+  _clientBase = 'https://kievan-rus.online/';
 
   token = localStorage.getItem("token");
   defaultHeaders = { headers: 
@@ -34,8 +34,8 @@ export default class InternalService {
     return await axios.get(`${this._apiBase}stamps`);
   }
 
-  async getDukes() {
-    return await axios.get(`${this._apiBase}dukesList`);
+  async getDukes(params) {
+    return await axios.get(`${this._apiBase}dukesList`, {params: params});
   }
 
   async getDukesEnum() {
@@ -64,6 +64,10 @@ export default class InternalService {
 
   async getLocationSpecimens(params) {
     return await axios.get(`${this._apiBase}locationSpecimens`, {params: params});
+  }
+
+  async getPublicationSpecimens(params) {
+    return await axios.get(`${this._apiBase}publicationSpecimens`);
   }
 
   async getTypeAttributions(params) {

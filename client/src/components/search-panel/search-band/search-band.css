@@ -7,6 +7,9 @@
   display: grid;
   grid-template-columns: 90px 1fr;
   margin-bottom: auto;
+  @media (max-width: 650px) {
+    grid-template-columns: 1px 1fr;
+  }
 }
 
 .sides-panel h5 {
@@ -15,4 +18,10 @@
 
 .long-column {
   grid-column: span 2;
+}
+
+.hid-on-small {
+  @media (max-width: 650px) {
+    visibility: hidden;
+  }
 }

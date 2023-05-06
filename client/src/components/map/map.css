@@ -11,3 +11,47 @@
   border-radius: 5px;
   min-width: 320px;
 }
+
+.geo-names-container {
+  max-height: 79vh;
+  overflow: auto;
+  position: relative;
+}
+
+.geo-names-container::-webkit-scrollbar {
+  width: 0.5em; /* width of the scrollbar */
+}
+
+.geo-names-container::-webkit-scrollbar-track {
+  background-color: transparent; /* background color of the track */
+}
+
+.geo-names-container::-webkit-scrollbar-thumb {
+  background-color: inherit; /* color of the thumb */
+  border-radius: 10px; /* border radius of the thumb */
+}
+
+.geo-names-container::-webkit-scrollbar-thumb:hover {
+  background-color: inherit; /* color of the thumb on hover */
+}
+
+span.striped {
+  float: left;
+  width: 40px;
+  background-image: linear-gradient(45deg, #fff 25%, transparent 25%, transparent 50%, #fff 50%, #fff 75%, transparent 75%, transparent);
+  background-size: 5px 5px; /* adjust the size of the stripes as needed */
+}
+
+ul.nodot {
+  list-style-type: none;
+}
+
+.map-stats{
+  display: grid;
+  grid-template-columns: 300px 1fr; 
+  margin-bottom: 20px;
+
+  @media (max-width: 650px) {
+    grid-template-columns: 1fr;
+  }
+}

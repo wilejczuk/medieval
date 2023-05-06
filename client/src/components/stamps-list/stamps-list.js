@@ -98,7 +98,7 @@ export default class Stamps extends Component {
             </a>
           </div>
           <div className="top-add">
-            <div>{obverse} <br /> {reverse} <div className="quantity"> <b>Экз</b>.: {cnt} в базе</div></div>
+            <div>{obverse} <br /> {reverse} <div className="quantity"> <b>Specimens</b>: {cnt} listed</div></div>
           </div>
         </div>
       );
@@ -160,9 +160,11 @@ export default class Stamps extends Component {
     return (
       <div className="flex-header">
         <SearchStatus selection={selection} />
-        {items}
+        <div className="list-items">
+          {items}
+        </div>
         <SearchPagination
-          className="pagination-bar grid-element"
+          className="pagination-bar grid-element top-30"
           currentPage={currentPage}
           totalCount={stampsList.length}
           pageSize={pageSize}

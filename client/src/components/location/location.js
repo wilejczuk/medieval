@@ -57,6 +57,7 @@ export default class Location extends Component {
         else found.val+=1;
       }
     );
+    console.log(showType);
     const literatureSums = this.renderLiteratureSums(arrLiterature);
 
     let items, itemsHeader, panelClass;

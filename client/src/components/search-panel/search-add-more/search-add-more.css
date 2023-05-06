@@ -2,6 +2,10 @@
   padding-left: 20px;
 }
 
+.padding-top {
+  padding-top: 20px;
+}
+
 .grid-element {
   grid-column: span 2;
 }

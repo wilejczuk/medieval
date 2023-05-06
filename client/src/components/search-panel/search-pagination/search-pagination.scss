@@ -1,6 +1,7 @@
 .pagination-container {
   display: flex;
   list-style-type: none;
+  flex-wrap: wrap;
 
   h5 {
     padding: 0 12px;

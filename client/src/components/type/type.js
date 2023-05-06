@@ -36,7 +36,7 @@ export default class Type extends Component {
   renderAttributions(arr) {
     return arr.map(({id, name, datePower, dateDeath, year, publication, page}) => {
       const uniqueKey = `${datePower}-${dateDeath}-${year}`;
-      const dukeLink = `/duke/${id}`
+      const dukeLink = `/person/${id}`
       return (
         <div key={uniqueKey}>
           <br /><b>Attributed to</b> <a href={dukeLink}>{name}</a> ({datePower} - {dateDeath}) <br />
@@ -177,7 +177,7 @@ export default class Type extends Component {
             {attribution}
             {addAttribution}
         </div>
-        <div>
+        <div className='padding-both'>
           {itemsHeader}
           <div className={panelClass}>
             {items}

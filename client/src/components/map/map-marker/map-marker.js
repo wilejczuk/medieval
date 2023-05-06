@@ -10,7 +10,6 @@ export default class MapMarker extends Component {
 
   numberedIcon = L.Icon.extend({
     options: {
-      iconUrl: 'http://localhost:3001/map-marker.png',
       number: '',
       shadowUrl: null,
       iconAnchor: new L.Point(13, 41),

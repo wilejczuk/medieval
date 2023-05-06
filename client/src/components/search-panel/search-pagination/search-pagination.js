@@ -37,7 +37,7 @@ const SearchPagination = props => {
   return (
     <ul
       className={classnames('pagination-container', { [className]: className })}
-    > <h5> Pages </h5>
+    > 
        {/* Left navigation arrow */}
       <li key='prev'
         className={classnames('pagination-item', {
