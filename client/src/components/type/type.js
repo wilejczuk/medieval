@@ -34,12 +34,13 @@ export default class Type extends Component {
   }
 
   renderAttributions(arr) {
-    return arr.map(({id, name, datePower, dateDeath, year, publication, page}) => {
+    return arr.map(({id, name, datePower, dateDeath, year, publication, page, isTentative}) => {
       const uniqueKey = `${datePower}-${dateDeath}-${year}`;
-      const dukeLink = `/person/${id}`
+      const dukeLink = `/person/${id}`;
+      const tentativeAttribution = isTentative ? (<span className='circle'>!</span>) : null;
       return (
         <div key={uniqueKey}>
-          <br /><b>Attributed to</b> <a href={dukeLink}>{name}</a> ({datePower} - {dateDeath}) <br />
+          <br /><b>Attributed to</b> {tentativeAttribution} <a href={dukeLink}>{name}</a> ({datePower} - {dateDeath}) <br />
           in <i>{year}</i> <span className="date">{publication}</span> С. {page}.
         </div>
       );
@@ -114,7 +115,7 @@ export default class Type extends Component {
                   <p><b>Rev</b>: {showType[0].revDescription} </p>
                 </div>
               ) : null;
-
+    console.log(typeAttributions);  
     const attribution = typeAttributions.length>0 ? this.renderAttributions(typeAttributions) : null;
 
     let codirect = null;

@@ -119,7 +119,7 @@ export default class App extends Component {
             </div>
           } />
 
-          <Route path="/type/add/:o/:r/:ot/:oi/:rt/:ri" element={
+          <Route path="/type/add/:o/:r/:ot/:oi/:rt/:ri/:kind" element={
             <div>
               <AddTypesWrapper />
             </div>

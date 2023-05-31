@@ -69,7 +69,7 @@ export default class Intro extends Component {
           textShadow: `2px 2px black`
         };
 
-      const specialGroup = (idBranch === 7) ? <img className='imageShade' height='50' src='./../../../icons/priest.png' /> : 
+      const specialGroup = ([7, 8].includes(idBranch)) ? <img className='imageShade' height='50' src='./../../../icons/priest.png' /> : 
         idHusband ? <img className='imageShade' height='50' src='./../../../icons/princess.png' /> : null  ;  
 
 

@@ -167,6 +167,7 @@ app.get('/logout', (req, res, next) => {
 });
 
 app.post('/register', userExists, (req, res) => {
+    console.log(req.body);
     const saltHash = genPassword(req.body.pw);
     const salt = saltHash.salt;
     const hash = saltHash.hash;
@@ -293,7 +294,9 @@ app.get('/selectDictionaries', (req, res) => {
         }
         else {
             saints = results;
-            connection.query('Select * from signs', function (error, results) {
+            connection.query(`Select s.id, s.type, sc.name from signs s
+                                left join signCategories sc on s.idCategory = sc.id
+                                order by sc.id`, function (error, results) {
                 if (error) {
                     console.log(error);
                 }
@@ -482,6 +485,7 @@ app.get('/dukesStamps',
               left join publicationAttribution pA on pA.idObverse = sps.idObv
               left join personalia per on per.id = pA.idPersona
               where per.id = ${req.query['0']}
+              and pA.isTentative = false
               group by sps.idObv, sps.idRev`,
                 function (error, results) {
                   if (error) console.log(error);
@@ -504,7 +508,7 @@ app.get('/dukes',
 
 app.get('/dukesList', 
     (req, res) => {
-        const condition = req.query['0'] ? `where pr.idBranch=${req.query['0']}` : ``;
+        const condition = req.query['0'] ? `and pr.idBranch=${req.query['0']}` : ``;
         
         connection.query(`select pr.*, count(st.id), i.id pic, i.imgType ext, br.name_ru branch 
         FROM publicationAttribution pa 
@@ -512,6 +516,7 @@ app.get('/dukesList',
         left join personalia pr on pa.idPersona = pr.id
         left join branches br on br.id = pr.idBranch
         left join illustrations i on i.idPerson = pr.id
+        where pa.isTentative = false
         ${condition} 
         group by pr.name
         order by pr.dateDeath 
@@ -622,7 +627,7 @@ app.get('/specimenCoordinates',
 app.get('/typeAttributions',
         (req, res) => {
             let searchString =
-            `select pr.*, pb.name publication, pb.year, pa.page 
+            `select pr.*, pb.name publication, pb.year, pa.page, pa.isTentative 
             FROM publicationAttribution pa 
             left join stamps st on pa.idObverse = st.id
             left join personalia pr on pa.idPersona = pr.id
@@ -723,9 +728,9 @@ app.post('/addAttribution',
        var form = new formidable.IncomingForm();
        form.parse(req, function(err, fields, files) {
          console.log(fields);
-           const {idPersona, idPublication, idObv, page} = fields;
-           connection.query(`Insert into publicationAttribution(idPersona, idPublication, idObverse, page)
-                values(?,?,?,?)`, [idPersona, idPublication, idObv, page],
+           const {idPersona, idPublication, idObv, page, isTentative} = fields;
+           connection.query(`Insert into publicationAttribution(idPersona, idPublication, idObverse, page, isTentative)
+                values(?,?,?,?,?)`, [idPersona, idPublication, idObv, page, isTentative],
                    function (error, results) {
                      if (error) console.log(error);
                      else return res.json (results);
@@ -762,7 +767,7 @@ app.post('/specimen',
 
 async function branchCases (typeId, err, fields, files, cb) {
     const {obvDescription, revDescription, orient,
-      size, weight, findingSpot, findingSpotComments, publication, page, number} = fields;
+      size, weight, findingSpot, findingSpotComments, publication, page, number, poster} = fields;
 
     let extObv = files.obvStamp.originalFilename.split('.').pop();
     let extRev = files.revStamp.originalFilename.split('.').pop();
@@ -798,8 +803,8 @@ async function branchCases (typeId, err, fields, files, cb) {
 
                 let ext = files.picture.originalFilename.split('.').pop();
 
-                connection.query(`Insert into specimens(idObv, idRev, geo, geoComment, weight, maxDiameter, imgType)
-                 values(?,?,?,?,?,?,?)`, [indObv, indRev, findingSpot, findingSpotComments, weight, size, ext],
+                connection.query(`Insert into specimens(idObv, idRev, geo, geoComment, weight, maxDiameter, imgType, poster)
+                 values(?,?,?,?,?,?,?,?)`, [indObv, indRev, findingSpot, findingSpotComments, weight, size, ext, poster],
                    function (error, results) {
                         if (error)
                             console.log(error);

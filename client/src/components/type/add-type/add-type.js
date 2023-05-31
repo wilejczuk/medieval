@@ -51,10 +51,12 @@ export default class AddType extends Component {
     const itemsHeader =
     (<h3>Add one specimen of the type</h3>);
 
+    const styleSides = searchParams['kind'] === 'image' ? { display: "none"} : { display: "flex"};
+
     return (
           <Formik
              initialValues={{ size: '', weight: '', findingSpot: '', findingSpotComments: '', 
-              picture: null, obvStamp: null, revStamp: null, orient: null,
+              picture: null, obvStamp: null, revStamp: null, orient: null, poster: localStorage.getItem("user"),
                publication: '', page: '', number: '', obvGroup: searchParams['ot'],
                obvDescription: searchParams['o'], revDescription: searchParams['r'],
                revGroup: searchParams['rt'], obvIndex: searchParams['oi'], revIndex: searchParams['ri']}}
@@ -89,7 +91,8 @@ export default class AddType extends Component {
                   this.stampsData.addTypeAndSpecimen (values.obvGroup, values.revGroup, values.obvIndex,
                     values.revIndex, values.obvStamp, values.revStamp, values.obvDescription,
                     values.revDescription, values.orient, values.picture, values.size, values.weight,
-                    values.findingSpot, values.findingSpotComments, values.publication, values.page, values.number)
+                    values.findingSpot, values.findingSpotComments, values.publication, values.page, values.number,
+                    values.poster)
                     .then(response => {
                       const newRoute = `/type/${response.data[0]}/${response.data[1]}`;
                       this.setState({
@@ -107,8 +110,8 @@ export default class AddType extends Component {
                  <div className="main-grid">
                    <div className="paddings">
                        <div className="footer-widget-heading">
-                          <h3>{searchParams['o']} | stamp drawing</h3>
-                          <div className='limited'>
+                          <h3>{searchParams['o']} | stamp</h3>
+                          <div style={styleSides}>
                             <Upload onChange={(file) => {
                                 setFieldValue("obvStamp", file);
                               }} />
@@ -136,8 +139,8 @@ export default class AddType extends Component {
                        <div className="paddington"></div>
 
                        <div className="footer-widget-heading">
-                          <h3>{searchParams['r']} | stamp drawing</h3>
-                          <div className='limited'>
+                          <h3>{searchParams['r']} | stamp</h3>
+                          <div style={styleSides}>
                             <Upload onChange={(file) => {
                                 setFieldValue("revStamp", file);
                               }} />
@@ -158,9 +161,12 @@ export default class AddType extends Component {
                    <div className="footer-widget-heading">
                      {itemsHeader}
                      <div>
-                         <Upload onChange={(file) => {
-                           console.log(file)
+                         <Upload onChange={(file, left, right) => {
                               setFieldValue("picture", file);
+                              if (searchParams['kind'] === 'image') {
+                                setFieldValue("obvStamp", left);
+                                setFieldValue("revStamp", right);
+                              }
                             }} />
                          <ErrorMessage className="error-message" name="picture" component="div" />
 

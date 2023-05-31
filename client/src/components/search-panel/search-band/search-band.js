@@ -21,8 +21,8 @@ export default class SearchBand extends Component {
           saints: body.data.saints.map(({id, name, epithet, subGroup}) => {
             return {id: id, text: `${name} (${epithet})`, subGroup: subGroup}
           }),
-          signs: body.data.signs.map(({id, type}) => {
-            return {id: id, text: `${this.stampsData._apiBase}signs/${id}.${type}`}
+          signs: body.data.signs.map(({id, type, name}) => {
+            return {id: id, text: `${this.stampsData._apiBase}signs/${id}.${type}`, subGroup: name}
           }),
           crosses: body.data.crosses.map(({id, type}) => {
             return {id: id, text: `${this.stampsData._apiBase}crosses/${id}.png`}

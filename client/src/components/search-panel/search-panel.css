@@ -37,9 +37,11 @@
 }
 
 .radio-item{
-  margin-left: 15px;
+  padding-left: 5px;
+  padding-right: 5px;
   color: #999999;
   font-size: 14px;
+  display: flex;
 }
 
 h5 {

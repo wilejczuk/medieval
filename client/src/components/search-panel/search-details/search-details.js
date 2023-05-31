@@ -8,6 +8,8 @@ export default class SearchDetails extends Component {
     if (group == "text")
       return (<div className="pseudo-text" id="obvText"></div>);
 
+    let groupCaption = '';  
+
     return arr.map(({id, text, subGroup}) => {
       const uniqueKey = side + id;
       const uniqueGroup = `${side}${group}`;
@@ -22,9 +24,18 @@ export default class SearchDetails extends Component {
       }
        : null;
 
+      let signGroup;
+
+      if ((groupCaption === '' || groupCaption !== subGroup) && group === 'signs') {
+        groupCaption = subGroup;
+        signGroup = <div className='smaller'>{groupCaption}</div>;
+      }
+      else signGroup = null;
+
       return (
-        <div id="radios" className=" radio-item paddington" key={uniqueKey}
+        <div id="radios" className="radio-item paddington" key={uniqueKey}
                         onChange={() => this.props.onChange(group, id)}>
+          {signGroup}
           <label className="form-check-label">
             <input className="form-check-input" type="radio" name={uniqueGroup} value={id} />
             <span style={coloring}>{contents}</span>

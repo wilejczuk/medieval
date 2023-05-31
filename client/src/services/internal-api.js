@@ -137,12 +137,13 @@ export default class InternalService {
     );
   }
 
-  async addAttribution(idPersona, idPublication, idObv, page) {
+  async addAttribution(idPersona, idPublication, idObv, page, isTentative) {
     let formData = new FormData();
     formData.append("idPersona", idPersona);
     formData.append("idPublication", idPublication);
     formData.append("idObv", idObv);
     formData.append("page", page);
+    formData.append("isTentative", isTentative?1:0);
 
     return await axios.post(`${this._apiBase}addAttribution`,
           formData, this.defaultHeaders
@@ -151,11 +152,11 @@ export default class InternalService {
 
   async addTypeAndSpecimen (obvGroup, revGroup, obvIndex, revIndex,
     obvStamp, revStamp, obvDescription, revDescription, orient,
-    picture, size, weight, findingSpot, findingSpotComments, publication, page, number) {
+    picture, size, weight, findingSpot, findingSpotComments, publication, page, number, poster) {
       let formData = new FormData();
       console.log(obvStamp)
       console.log(revStamp)
-      console.log(picture)
+      console.log(poster)
       // Types table
       formData.append("obvGroup", obvGroup);
       if (revGroup!=='null') formData.append("revGroup", revGroup);
@@ -175,6 +176,7 @@ export default class InternalService {
       if (weight!=='') formData.append("weight", weight);
       if (findingSpot!=='') formData.append("findingSpot", findingSpot);
       if (findingSpotComments!=='') formData.append("findingSpotComments", findingSpotComments);
+      formData.append("poster", poster);
 
       // Specimens-Publication table
       formData.append("publication", publication);

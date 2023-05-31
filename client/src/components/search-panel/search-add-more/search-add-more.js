@@ -9,17 +9,20 @@ export default class SearchAddMore extends Component {
       `${queryData}/null/null/null` :
       `${queryData['o']}/${queryData['od']}/${queryData['r']}/${queryData['rd']}`;
 
-    const link = `/type/add/${selection[0]}/${selection[1]}/${query}`;
+    const linkDrawing = `/type/add/${selection[0]}/${selection[1]}/${query}/drawing`;
+    const linkImage = `/type/add/${selection[0]}/${selection[1]}/${query}/image`;
 
     const relevantView = selection[2]===0 ?
     (
       <div className="grid-element padding-top">
-        <span className="greyish"><a href={link}>Add new</a></span>
+        Add new
+        &nbsp;<span ><a href={linkDrawing}>with line drawings</a> or <a href={linkImage}>using just specimen image</a></span>
       </div>
     ) : (
       <div className="grid-element padding-top">
-        Did not find the stamps' combination of the type<br /> <b>{selection[0]} / {selection[1]}</b>? <span className="greyish"><a href={link}>Add new</a></span>
-      </div>
+        Did not find the stamps' combination of the type "<b>{selection[0]} / {selection[1]}</b>"? <br />Add new
+        &nbsp;<span ><a href={linkDrawing}>with line drawings</a> or <a href={linkImage}>using just specimen image</a></span>
+      </div> 
     )
 
     return (

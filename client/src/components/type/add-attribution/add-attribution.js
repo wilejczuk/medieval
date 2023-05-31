@@ -64,8 +64,8 @@ export default class AddAttribution extends Component {
     })
   }
 
- sendAttribution (idPersona, idPublication, idObv, page) {
-    this.stampsData.addAttribution(idPersona, idPublication, idObv, page)
+ sendAttribution (idPersona, idPublication, idObv, page, isTentative) {
+    this.stampsData.addAttribution(idPersona, idPublication, idObv, page, isTentative)
       .then(response => {
         this.setState({
           loading: false
@@ -113,7 +113,7 @@ export default class AddAttribution extends Component {
            });
            setTimeout(() => {
              this.sendAttribution(values.persona,
-             values.publication, values.idObv, values.page);
+             values.publication, values.idObv, values.page, values.isTentative);
              setSubmitting(false);
            }, 400);
          }}
@@ -152,6 +152,13 @@ export default class AddAttribution extends Component {
                    <ErrorMessage className="error-message" name="page" component="div" />
                  </div>
                  <Field type="number" name="page" />
+              </div>
+
+              <div className='form-line'>
+                   No longer relevant
+                  <label>
+                    <Field type="checkbox" name="isTentative" />
+                  </label>
               </div>
 
              <button type="submit" disabled={isSubmitting}>

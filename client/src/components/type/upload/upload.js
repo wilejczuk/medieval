@@ -35,17 +35,24 @@ const Upload = (props) => {
 
     if (!file) return;
 
-    if (["image/jpeg", "image/png"].includes (file.type)) {
-      setHighlight(false);
-      setDrop(true);
-
-      uploadFile(file);
-      props.onChange(file);
-    }
-    else {
-      setMessage(true);
-      setTimeout (()=>setMessage(false), 1000);
-    } 
+    splitImage(file)
+    .then((files) => {
+      const leftHalfFile = files[0];
+      const rightHalfFile = files[1];
+      if (["image/jpeg", "image/png"].includes (file.type)) {
+        setHighlight(false);
+        setDrop(true);
+        uploadFile(file);
+        props.onChange(file, leftHalfFile, rightHalfFile); 
+      }
+      else {
+        setMessage(true);
+        setTimeout (()=>setMessage(false), 1000);
+      } 
+    })
+    .catch((error) => {
+      console.error(error);
+    });
   };
 
   function uploadFile(file) {
@@ -61,10 +68,67 @@ const Upload = (props) => {
     };
   }
 
+  function splitImage(imageFile) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+  
+      reader.onload = function (e) {
+        const img = new Image();
+        img.src = e.target.result;
+  
+        img.onload = function () {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+  
+          // Calculate the split position (halfway point)
+          const splitPosition = Math.floor(img.width / 2);
+  
+          // Set canvas dimensions to fit left half
+          canvas.width = splitPosition;
+          canvas.height = img.height;
+  
+          // Draw left half on the canvas
+          ctx.drawImage(img, 0, 0, splitPosition, img.height, 0, 0, splitPosition, img.height);
+  
+          // Create a file object for the left half
+          canvas.toBlob(function (blob) {
+            const leftHalfFile = new File([blob], 'left_half.jpg', { type: 'image/jpeg' });
+  
+            // Set canvas dimensions to fit right half
+            canvas.width = img.width - splitPosition;
+            canvas.height = img.height;
+  
+            // Draw right half on the canvas
+            ctx.drawImage(img, splitPosition, 0, img.width - splitPosition, img.height, 0, 0, img.width - splitPosition, img.height);
+  
+            // Create a file object for the right half
+            canvas.toBlob(function (blob) {
+              const rightHalfFile = new File([blob], 'right_half.jpg', { type: 'image/jpeg' });
+  
+              // Resolve the promise with both files
+              resolve([leftHalfFile, rightHalfFile]);
+            }, 'image/jpeg');
+          }, 'image/jpeg');
+        };
+      };
+  
+      // Read the image file as data URL
+      reader.readAsDataURL(imageFile);
+    });
+  }
+
   const shownMessage = message ? "Only JPG and PNG formats are accepted" : "Drop image here";
   const shownElement = preview ? (<Cropper onChangeSelection={(file) => {
-                                    props.onChange(file);
-                                  }} src={preview} />) 
+    splitImage(file)
+    .then((files) => {
+      const leftHalfFile = files[0];
+      const rightHalfFile = files[1];
+      props.onChange(file, leftHalfFile, rightHalfFile);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  }} src={preview} />) 
   : <p>{shownMessage}</p>; 
 
   return (
