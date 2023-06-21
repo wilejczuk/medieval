@@ -1,9 +1,3 @@
-.pseudo-text {
-  background: url('../../../../public/text.png') no-repeat center;
-  height: 100px;
-  width: 50%;
-}
-
 .smaller{
   font-size: 70%;
   max-width: 100px; 

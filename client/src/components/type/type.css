@@ -1,5 +1,9 @@
 .date {
-  background: #434343;
+  font-family: 'Courier';
+}
+
+.cat-no {
+  background: rgb(122, 163, 184);
   font-family: 'Courier';
 }
 
@@ -41,7 +45,6 @@
   position: absolute;
   top: 120%;
   left: 50%;
-  transform: translateX(-50%);
   white-space: nowrap;
   padding: 5px;
   border-radius: 5px;

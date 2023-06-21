@@ -1,0 +1,31 @@
+.circle-info {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    line-height: 1;
+    border-radius: 50%;
+    background-color: rgb(122, 163, 184);
+    color: white;
+    text-align: center;
+    position: relative;
+    cursor: help;
+  }
+  
+  .circle-info::before {
+    content: "You can publish it with the obligatory reference to the Cat.#";
+    position: absolute;
+    top: 120%;
+    left: 50%;
+    white-space: nowrap;
+    padding: 5px;
+    border-radius: 5px;
+    background-color: rgb(122, 163, 184);
+    color: white;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .circle-info:hover::before {
+    opacity: 1;
+  }

@@ -97,7 +97,7 @@ export default class Type extends Component {
 
     const { showType, typeAttributions, mode } = this.state;
 
-    if (!showType || !typeAttributions) {
+    if (!showType || !typeAttributions || showType.length===0) {
       return (
         <h3>List of stamps is empty.</h3>
       )

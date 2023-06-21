@@ -84,10 +84,17 @@ export default class Stamps extends Component {
   }
 
   renderItems(arr) {
-    return arr.map(({obverse, reverse, obv, rev, cnt, obvType, revType}) => {
+    return arr.map(({obverse, reverse, obv, rev, cnt, obvType, revType, pubNo, idPublication}) => {
       const obvPath = `${this.stampsData._apiBase}/stamps/${obv}.${obvType}`;
       const revPath = `${this.stampsData._apiBase}/stamps/${rev}.${revType}`;
       const specimensPath = `${this.stampsData._clientBase}type/${obv}/${rev}`;
+      let janinNo;
+
+      if (pubNo) {
+        const indexSearch = pubNo.search(/[^A-Za-z0-9]/);
+        janinNo = idPublication==2 ? indexSearch===-1 ? 'Yanin #' + pubNo : 'Yanin #' + pubNo.substring(0, indexSearch) : null;
+      }
+
       const uniqueKey = `${obv}-${rev}`;
       return (
         <div key={uniqueKey}>
@@ -98,6 +105,7 @@ export default class Stamps extends Component {
             </a>
           </div>
           <div className="top-add">
+            <div className="janin-nr capitalize"> {janinNo} </div>
             <div>{obverse} <br /> {reverse} <div className="quantity"> <b>Specimens</b>: {cnt} listed</div></div>
           </div>
         </div>

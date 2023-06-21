@@ -55,7 +55,7 @@ export default class SearchBand extends Component {
         <h5 className='hid-on-small'>{side}erse |</h5>
           <div className="btn-group band" role="group" aria-label="Image Type">
             <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("saints")}>Saint</button>
-            <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("letters")}>Letter</button>
+            <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("letters")}>Lettering</button>
             <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("signs")}>Tamgha</button>
             <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("crosses")}>Cross</button>
             <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("text")}>Other</button>

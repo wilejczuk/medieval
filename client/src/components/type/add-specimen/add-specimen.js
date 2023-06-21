@@ -27,7 +27,7 @@ export default class AddSpecimen extends Component {
   renderLitItems(arr) {
     return arr.map(({id, name, year}) => {
       const uniqueKey = `lit${id}`;
-      const longName = `${year} | ${name}`;
+      const longName = name.includes(', Unpublished,') ? 'Unpublished' : `${year} | ${name}`;
       return (
         <option key={uniqueKey} value={id}>{longName}</option>
       );
@@ -69,11 +69,11 @@ export default class AddSpecimen extends Component {
           if (!values.picture) {
             errors.picture = 'required';
           }
-           if (!values.page) {
+           if (!values.page && values.publication!=25) { // 'Unpublished'
              errors.page = 'required';
            }
-           if (!values.number) {
-             errors.number = 'required';
+           if (!values.number && values.publication!=25) { // 'Unpublished'
+            errors.number = 'required';
            }
            if (!values.publication) {
              errors.publication = 'required';
@@ -92,7 +92,7 @@ export default class AddSpecimen extends Component {
            }, 400);
          }}
        >
-         {({ isSubmitting, setFieldValue }) => (
+         {({ isSubmitting, values, setFieldValue }) => (
            <Form className='spec-column' encType="multipart/form-data">
                      <div>
                          <Upload onChange={(file) => {
@@ -149,7 +149,7 @@ export default class AddSpecimen extends Component {
                                Page
                                <ErrorMessage className="error-message" name="page" component="div" />
                              </div>
-                             <Field type="number" name="page" />
+                             <Field type="number" name="page" disabled={values.publication == 25} /> 
                           </div>
 
                           <div className='form-line'>
@@ -157,7 +157,7 @@ export default class AddSpecimen extends Component {
                                Number
                                <ErrorMessage className="error-message" name="number" component="div" />
                              </div>
-                             <Field type="text" name="number" />
+                             <Field type="text" name="number" disabled={values.publication == 25} />
                           </div>
 
                           <div className="sub-call-to-action">

@@ -6,7 +6,7 @@ export default class SearchDetails extends Component {
     const {side, arr, group} = this.props;
 
     if (group == "text")
-      return (<div className="pseudo-text" id="obvText"></div>);
+      return (<div className="pseudo-text" id="obvText"> Anything else </div>);
 
     let groupCaption = '';  
 
@@ -19,7 +19,7 @@ export default class SearchDetails extends Component {
       const indefinite = text.includes('неопределенный') ? 'italic' : 'normal';
       const coloring = subGroup ? 
        {
-        color: `hsl(${(subGroup-36)*100}, 30%, 60%)`,
+        color: `hsl(${(subGroup-36)*60}, 30%, 60%)`,
         fontStyle: `${indefinite}`
       }
        : null;

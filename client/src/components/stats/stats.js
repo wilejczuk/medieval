@@ -31,10 +31,12 @@ export default class Stats extends Component {
         width: count
       };
 
+      const longName = name.includes(', Unpublished,') ? (<span>&nbsp; Unpublished</span>) : (<span>&nbsp; <i>{year}</i> <span className="date">{name}</span></span>);
+
       return (
         <li key={uniqueKey}>
           <span className = "striped" style={spanDynamicStyle} wdith='200px'>&nbsp;</span> 
-          &nbsp; <i>{year}</i> <span className="date">{name}</span> 
+          {longName}
         </li>
       );
     });

@@ -18,7 +18,7 @@ const ExtractJWT = passportJWT.ExtractJwt;
 const nodemailer = require('nodemailer');
 const config = require('./config.json');
 
-const env = "prod";
+const env = "test";
  
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", config[env].url);
@@ -400,9 +400,10 @@ app.get('/personalia-with-saints', (req, res) => {
 
 app.get('/stamps',
         (req, res) => {
-            connection.query(`select magna.*, count(sps.id) cnt
+            connection.query(`select magna.*, count(sps.id) cnt, pS.number pubNo, pS.idPublication
 from (${grandRequest}) magna
                   inner join specimens sps on magna.obv = sps.idObv and magna.rev = sps.idRev
+                  left join publicationSpecimen pS on sps.id = pS.idSpecimen
                   where not (magna.obvImageGroup=0 and magna.revImageGroup = 0 and magna.obvImageId > 0 and magna.revImageId > 0)
                   group by sps.idObv, sps.idRev`,
                     function (error, results) {
@@ -467,10 +468,13 @@ const grandRequest = `SELECT DISTINCT tp.id typeId, tp.obvImageGroup, tp.revImag
     left join crosses crosses2 on crosses2.id = tp.revImageId
     left join letters letters1 on letters1.id = tp.obvImageId
     left join letters letters2 on letters2.id = tp.revImageId
-    where st1.isObverse and st1.id!=st2.id`;
+    where st1.isObverse and st1.id!=st2.id
+    and tp.id < 100000`; //excluded coins
 
 const compositePublications = `(select p.id, p.year,
-CONCAT(GROUP_CONCAT(a.name_ru ORDER BY p.id, pa.id SEPARATOR ', '), ', ', p.name, ', ', p.place, '.') name  
+    CASE WHEN j.acronym is not null THEN                               
+    CONCAT(GROUP_CONCAT(a.name_ru ORDER BY p.id, pa.id SEPARATOR ', '), ', ', p.name, ' // ', j.acronym, ', v.' , p.number, ', ', p.place, '.')
+    else CONCAT(GROUP_CONCAT(a.name_ru ORDER BY p.id, pa.id SEPARATOR ', '), ', ', p.name, ', ', p.place, '.') END name   
 from publications p 
 left join publicationAuthor pa on p.id = pa.idPublication 
 left join authors a on a.id = pa.idAuthor 
@@ -479,14 +483,40 @@ GROUP by p.id)`
 
 app.get('/dukesStamps',
     (req, res) => {
-        connection.query(`select magna.*, count(sps.id) cnt, per.name issuerName
+        connection.query(`select magna.*, count(sps.id) cnt, per.name issuerName, pS.number pubNo, pS.idPublication
         from (${grandRequest}) magna
               inner join specimens sps on magna.obv = sps.idObv and magna.rev = sps.idRev
+              left join publicationSpecimen pS on sps.id = pS.idSpecimen
               left join publicationAttribution pA on pA.idObverse = sps.idObv
               left join personalia per on per.id = pA.idPersona
               where per.id = ${req.query['0']}
               and pA.isTentative = false
               group by sps.idObv, sps.idRev`,
+                function (error, results) {
+                  if (error) console.log(error);
+                  else return res.json (results);
+                }
+        );
+});
+
+app.get('/coins', /// To be used later to retrieve coins
+    (req, res) => {
+        connection.query(`SELECT IFNULL(sp1.id, sp2.id) jointIndex, 
+        t.obvText, s.description obvDetail, t.revText, revva.description revDetail, p.name, sp1.rarityMark, k.name_ru  
+        from types t
+        left join stamps s on s.idType = t.id 
+        left JOIN specimens sp1 on sp1.idObv = s.id 
+        left JOIN specimens sp2 on sp2.idRev = s.id 
+        left join (SELECT s.description, s.id
+        from types t
+        left join stamps s on s.idType = t.id 
+        left JOIN specimens sp1 on sp1.idObv = s.id 
+        left JOIN specimens sp2 on sp2.idRev = s.id 
+        where t.id > 100000 and IFNULL(sp1.id, sp2.id)+1 = s.id) revva on revva.id = s.id+1
+        left JOIN publicationAttribution pa on pa.idObverse = s.id
+        left JOIN personalia p on pA.idPersona = p.id  
+        left join kinds k on sp1.idKind = k.id 
+        where t.id > 100000 and IFNULL(sp1.id, sp2.id) = s.id`,
                 function (error, results) {
                   if (error) console.log(error);
                   else return res.json (results);
@@ -543,8 +573,9 @@ app.get('/parametrizedStamps',
             };
 
             let searchString =
-            `select magna.*, count(sps.id) cnt
+            `select magna.*, count(sps.id) cnt, pS.number pubNo, pS.idPublication
             from specimens sps
+            left join publicationSpecimen pS on sps.id = pS.idSpecimen
             inner join (${grandRequest}
                       and ((
                           tp.obvImageGroup = ${getDBIndex(req.query['0'])} ${condition1Exists}

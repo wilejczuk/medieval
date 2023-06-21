@@ -17,6 +17,26 @@
 
 .top-add{
   padding-top: 10px;
+  display: flex;
+  align-items: center; /* Center vertically */
+}
+
+.janin-nr{
+  margin-right: 10px;
+  background-color: darksalmon;
+  max-width: 50px;
+  text-align: center; /* Center the text horizontally */
+}
+
+.capitalize {
+  text-transform: uppercase;
+  font-size: smaller;
+  font-family: 'Courier';
+  font-weight: bolder;
+}
+
+.capitalize::first-letter {
+  font-size: 120%;
 }
 
 .top-30{

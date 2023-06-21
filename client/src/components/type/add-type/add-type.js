@@ -27,7 +27,7 @@ export default class AddType extends Component {
   renderLitItems(arr) {
     return arr.map(({id, name, year}) => {
       const uniqueKey = `lit${id}`;
-      const longName = `${year} | ${name}`;
+      const longName = name.includes(', Unpublished,') ? 'Unpublished' : `${year} | ${name}`;
       return (
         <option key={uniqueKey} value={id}>{longName}</option>
       );
@@ -72,10 +72,10 @@ export default class AddType extends Component {
               if (!values.revStamp) {
                 errors.revStamp = 'required';
               }
-               if (!values.page) {
+               if (!values.page && values.publication!=25) {
                  errors.page = 'required';
                }
-               if (!values.number) {
+               if (!values.number && values.publication!=25) {
                  errors.number = 'required';
                }
                if (!values.publication) {
@@ -105,7 +105,7 @@ export default class AddType extends Component {
                }, 400);
              }}
            >
-             {({ isSubmitting, setFieldValue }) => (
+             {({ isSubmitting, values, setFieldValue }) => (
                <Form className="form-add" encType="multipart/form-data">
                  <div className="main-grid">
                    <div className="paddings">
@@ -219,7 +219,7 @@ export default class AddType extends Component {
                                Page
                                <ErrorMessage className="error-message" name="page" component="div" />
                              </div>
-                             <Field type="number" name="page" />
+                             <Field type="number" name="page" disabled={values.publication == 25} />
                           </div>
 
                           <div className='form-line'>
@@ -227,7 +227,7 @@ export default class AddType extends Component {
                                Number
                                <ErrorMessage className="error-message" name="number" component="div" />
                              </div>
-                             <Field type="text" name="number" />
+                             <Field type="text" name="number" disabled={values.publication == 25} />
                           </div>
 
                           <div className="sub-call-to-action">

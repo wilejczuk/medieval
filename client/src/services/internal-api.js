@@ -2,10 +2,10 @@ import axios from 'axios';
 
 export default class InternalService {
 
-  //_apiBase = 'http://localhost:3000/';
-  //_clientBase = 'http://localhost:3001/';
-  _apiBase = 'https://server.kievan-rus.online/';
-  _clientBase = 'https://kievan-rus.online/';
+  _apiBase = 'http://localhost:3000/';
+  _clientBase = 'http://localhost:3001/';
+  //_apiBase = 'https://server.kievan-rus.online/';
+  //_clientBase = 'https://kievan-rus.online/';
 
   token = localStorage.getItem("token");
   defaultHeaders = { headers: 
@@ -129,8 +129,8 @@ export default class InternalService {
     formData.append("idObv", idObv);
     formData.append("idRev", idRev);
     formData.append("publication", publication);
-    formData.append("page", page);
-    formData.append("number", number);
+    if (page!=='') formData.append("page", page);
+    if (number!=='') formData.append("number", number);
 
     return await axios.post(`${this._apiBase}specimen`,
           formData, this.defaultHeaders
@@ -154,9 +154,6 @@ export default class InternalService {
     obvStamp, revStamp, obvDescription, revDescription, orient,
     picture, size, weight, findingSpot, findingSpotComments, publication, page, number, poster) {
       let formData = new FormData();
-      console.log(obvStamp)
-      console.log(revStamp)
-      console.log(poster)
       // Types table
       formData.append("obvGroup", obvGroup);
       if (revGroup!=='null') formData.append("revGroup", revGroup);
@@ -180,8 +177,8 @@ export default class InternalService {
 
       // Specimens-Publication table
       formData.append("publication", publication);
-      formData.append("page", page);
-      formData.append("number", number);
+      if (page!=='') formData.append("page", page);
+      if (number!=='') formData.append("number", number);
 
       return await axios.post(`${this._apiBase}typeAndSpecimen`,
             formData, this.defaultHeaders
