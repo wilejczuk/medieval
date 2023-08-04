@@ -468,8 +468,7 @@ const grandRequest = `SELECT DISTINCT tp.id typeId, tp.obvImageGroup, tp.revImag
     left join crosses crosses2 on crosses2.id = tp.revImageId
     left join letters letters1 on letters1.id = tp.obvImageId
     left join letters letters2 on letters2.id = tp.revImageId
-    where st1.isObverse and st1.id!=st2.id
-    and tp.id < 100000`; //excluded coins
+    where st1.isObverse and st1.id!=st2.id`; 
 
 const compositePublications = `(select p.id, p.year,
     CASE WHEN j.acronym is not null THEN                               
@@ -499,24 +498,73 @@ app.get('/dukesStamps',
         );
 });
 
+const coinBaseRequest = `SELECT IFNULL(sp1.id, sp2.id) jointIndex, 
+t.obvText, s.description obvDetail, t.revText, revva.description revDetail, p.id, p.name, p.idBranch, 
+sp1.rarityMark, k.name_ru, sp1.idObv  
+from coin_types t
+left join coin_stamps s on s.idType = t.id 
+left JOIN coin_specimens sp1 on sp1.idObv = s.id 
+left JOIN coin_specimens sp2 on sp2.idRev = s.id 
+left join (SELECT s.description, s.id
+from coin_types t
+left join coin_stamps s on s.idType = t.id 
+left JOIN coin_specimens sp1 on sp1.idObv = s.id 
+left JOIN coin_specimens sp2 on sp2.idRev = s.id 
+where IFNULL(sp1.id, sp2.id)+1 = s.id) revva on revva.id = s.id+1
+left JOIN coin_publicationAttribution pa on pa.idObverse = s.id
+left JOIN personalia p on pa.idPersona = p.id  
+left join kinds k on sp1.idKind = k.id 
+where IFNULL(sp1.id, sp2.id) = s.id`;
+
 app.get('/coins', /// To be used later to retrieve coins
     (req, res) => {
-        connection.query(`SELECT IFNULL(sp1.id, sp2.id) jointIndex, 
-        t.obvText, s.description obvDetail, t.revText, revva.description revDetail, p.name, sp1.rarityMark, k.name_ru  
-        from types t
-        left join stamps s on s.idType = t.id 
-        left JOIN specimens sp1 on sp1.idObv = s.id 
-        left JOIN specimens sp2 on sp2.idRev = s.id 
-        left join (SELECT s.description, s.id
-        from types t
-        left join stamps s on s.idType = t.id 
-        left JOIN specimens sp1 on sp1.idObv = s.id 
-        left JOIN specimens sp2 on sp2.idRev = s.id 
-        where t.id > 100000 and IFNULL(sp1.id, sp2.id)+1 = s.id) revva on revva.id = s.id+1
-        left JOIN publicationAttribution pa on pa.idObverse = s.id
-        left JOIN personalia p on pA.idPersona = p.id  
-        left join kinds k on sp1.idKind = k.id 
-        where t.id > 100000 and IFNULL(sp1.id, sp2.id) = s.id`,
+        connection.query(coinBaseRequest,
+                function (error, results) {
+                  if (error) console.log(error);
+                  else return res.json (results);
+                }
+        );
+});
+
+app.get('/coinSections',
+    (req, res) => {
+        connection.query(`select distinct b.id, b.name_ru from (${coinBaseRequest}) grand
+                            left JOIN branches b on grand.idBranch = b.id`,
+                function (error, results) {
+                  if (error) console.log(error);
+                  else return res.json (results);
+                }
+        );
+});
+
+app.get('/coinIssuers',
+    (req, res) => {
+        connection.query(`select id, name, count(jointIndex) cnt from (${coinBaseRequest}) grand
+                            where idBranch = ${req.query['0']} GROUP by id ORDER by jointIndex`,
+                function (error, results) {
+                  if (error) console.log(error);
+                  else return res.json (results);
+                }
+        );
+});
+
+app.get('/issuersCoins',
+    (req, res) => {
+        connection.query(`select * from (${coinBaseRequest}) grand
+        left join coin_publicationSpecimen cps on cps.idSpecimen = grand.idObv 
+                            where grand.id = ${req.query['0']} ORDER by jointIndex`,
+                function (error, results) {
+                  if (error) console.log(error);
+                  else return res.json (results);
+                }
+        );
+});
+
+app.get('/wishedCoins',
+    (req, res) => {
+        connection.query(`select * from (${coinBaseRequest}) grand
+        left join coin_publicationSpecimen cps on cps.idSpecimen = grand.idObv 
+                            where jointIndex in (${req.query['0']}) ORDER by jointIndex`,
                 function (error, results) {
                   if (error) console.log(error);
                   else return res.json (results);

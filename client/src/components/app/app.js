@@ -100,7 +100,7 @@ export default class App extends Component {
             <div>
               <div className='padding-both bukvitsa'>
                 The estimated number of the published seals of the Kievan Rus’ period is more than 10k.<br /> 
-                However, many of them are illegible, and bring just a little useful information. Our database currently contains almost 500 seals in it, our goal is to have at least 3k listed by the end of 2023.
+                However, many of them are illegible, and bring just a little useful information. Our database currently contains almost 1k seals in it, our goal is to have at least 3k listed by the end of 2023.
               </div>
               <MapComponent />
               <Stats />
