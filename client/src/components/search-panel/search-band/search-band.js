@@ -8,18 +8,23 @@ export default class SearchBand extends Component {
 
   state = {
     saints: null,
+    fullSaints: null,
     signs: null,
     crosses: null,
     letters: null,
-    currentSelection: "saints"
+    currentSelection: "saints",
+    filterText: ""
   };
 
   componentDidMount() {
     this.stampsData.getDictionaries()
       .then((body) => {
         this.setState({
-          saints: body.data.saints.map(({id, name, epithet, subGroup}) => {
-            return {id: id, text: `${name} (${epithet})`, subGroup: subGroup}
+          saints: body.data.saints.map(({id, name, epithet, name_en, epithet_en, subGroup}) => {
+            return {id: id, text: `${name_en}, ${epithet_en} | ${name}, ${epithet}`, subGroup: subGroup}
+          }),
+          fullSaints: body.data.saints.map(({id, name, epithet, name_en, epithet_en, subGroup}) => {
+            return {id: id, text: `${name_en}, ${epithet_en} | ${name}, ${epithet}`, subGroup: subGroup}
           }),
           signs: body.data.signs.map(({id, type, name}) => {
             return {id: id, text: `${this.stampsData._apiBase}signs/${id}.${type}`, subGroup: name}
@@ -50,6 +55,40 @@ export default class SearchBand extends Component {
       )
     }
 
+    const handleInputChange = (e) => {
+      const searchText = e.target.value;
+      this.setState ({ filterText: searchText })
+  
+      const filteredSaints = this.state.fullSaints.filter((saint) =>
+        saint.text.toLowerCase().includes(searchText.toLowerCase())
+      );
+
+      this.setState({saints: filteredSaints});
+    };
+
+    const handleClearClick = () => {
+      this.setState({ filterText: '', saints: this.state.fullSaints });
+    };
+
+    const saintsSearch = currentSelection === "saints" ?
+      (<div className='saint-filter'>
+        <input
+          type="text"
+          placeholder="Search saints..."
+          value={this.state.filterText}
+          onChange={handleInputChange}
+          maxLength={100}
+        />
+        <a
+          className='show-all-link' 
+          onClick={handleClearClick} 
+          href="#"
+        >
+          Show All
+        </a>
+      </div> 
+      ) : null;
+
     return (
       <div className="sides-panel">
         <h5 className='hid-on-small'>{side}erse |</h5>
@@ -61,7 +100,9 @@ export default class SearchBand extends Component {
             <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("text")}>Other</button>
           </div>
 
-          <div className="type-content long-column">
+          {saintsSearch}
+
+          <div className="type-content long-column left-element">
             <SearchDetails  side={side}
                             group={currentSelection}
                             arr={this.state[currentSelection]}

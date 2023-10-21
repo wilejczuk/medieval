@@ -14,7 +14,6 @@ export default class Intro extends Component {
     let searchParam = this.props.match ? this.props.match.params["br"] : null;
     this.data.getDukes([searchParam])
         .then((body) => {
-          console.log(body.data)
           this.setState({
             dukesList: body.data
           });
@@ -41,6 +40,7 @@ export default class Intro extends Component {
     return arr.map(({
         id,
         name,
+        name_en,
         dateBirth,
         dateDeath,
         datePower,
@@ -56,7 +56,7 @@ export default class Intro extends Component {
       const power = datePower ? `ϡ ${powerProximity?'≈':''}${datePower} ` : '';
       const death = dateDeath ? `† ${deathProximity?'≈':''}${dateDeath}` : '';
       const dates = `${birth}${power}${death}`;
-      const title = `${name} (${dates})`;
+      const title = `${name_en} (${dates})`;
       function link() {window.location.href=`/person/${id}`};
       const uniqueKey = `duke${id}`;
       let className = `box `;
@@ -110,11 +110,9 @@ export default class Intro extends Component {
       return seeAll
     }
 
-    const items = this.renderItems(dukesList);
+    const items = this.renderItems(dukesList.slice(0, 24));
     const branch = this.props.match ? 
       (<div className="padding-both wrapper grid-container">{dukesList[0].branch}</div>) : null;
-
-
 
     return (
       <div className="bottom">

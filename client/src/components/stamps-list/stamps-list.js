@@ -158,7 +158,7 @@ export default class Stamps extends Component {
       )
     }
 
-    const pageSize = 10;
+    const pageSize = 12;
     const firstPageIndex = (currentPage - 1) * pageSize;
     const lastPageIndex = firstPageIndex + pageSize;
     const pagedList = stampsList.slice(firstPageIndex, lastPageIndex);

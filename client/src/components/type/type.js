@@ -2,6 +2,8 @@ import React, { Component }  from 'react';
 import AddSpecimen from './add-specimen';
 import AddAttribution from './add-attribution';
 import Specimens from '../specimens-list/specimens-list';
+import { MapContainer, TileLayer  } from "react-leaflet";
+import MapMarker from '../map/map-marker';
 
 import InternalService from '../../services/internal-api';
 import './type.css';
@@ -34,13 +36,13 @@ export default class Type extends Component {
   }
 
   renderAttributions(arr) {
-    return arr.map(({id, name, datePower, dateDeath, year, publication, page, isTentative}) => {
+    return arr.map(({id, name, name_en, datePower, dateDeath, year, publication, page, isTentative}) => {
       const uniqueKey = `${datePower}-${dateDeath}-${year}`;
       const dukeLink = `/person/${id}`;
       const tentativeAttribution = isTentative ? (<span className='circle'>!</span>) : null;
       return (
         <div key={uniqueKey}>
-          <br /><b>Attributed to</b> {tentativeAttribution} <a href={dukeLink}>{name}</a> ({datePower} - {dateDeath}) <br />
+          <br /><b>Attributed to</b> {tentativeAttribution} <a href={dukeLink}>{name_en}</a> ({datePower} - {dateDeath}) <br />
           in <i>{year}</i> <span className="date">{publication}</span> С. {page}.
         </div>
       );
@@ -115,8 +117,61 @@ export default class Type extends Component {
                   <p><b>Rev</b>: {showType[0].revDescription} </p>
                 </div>
               ) : null;
-    console.log(typeAttributions);  
+
     const attribution = typeAttributions.length>0 ? this.renderAttributions(typeAttributions) : null;
+    
+    /// MAP DETAILS
+
+    let north = -90; // Initial value for north extreme
+    let south = 90;  // Initial value for south extreme
+    let west = 180;  // Initial value for the westernmost extreme
+    let east = -180; // Initial value for the easternmost extreme
+
+    this.state.showType.forEach(point => {
+      const { latitude, longitude } = point;
+    
+      if (latitude > north) {
+        north = latitude;
+      }
+      if (latitude && latitude < south) {
+        south = latitude;
+      }
+    
+      if (longitude > east) {
+        east = longitude;
+      }
+      if (longitude && longitude < west) {
+        west = longitude;
+      }
+    });
+
+    const centerLat = (north + south) / 2;
+    const centerLng = (east + west) / 2;
+
+    const bounds = [[south, west], [north, east]];
+
+    const onlyFilledCoordinates = this.state.showType.filter((el) => el.longitude && el.latitude )
+
+    const coordinates = onlyFilledCoordinates.map((el) => {
+      const uniqueKey = `spec_${el.id}`
+      const markerFormat = {id: el.id, imgType: el.imgType, idObv: el.idObv, idRev: el.idRev,
+         geo:el.geo, lat: el.latitude, lon: el.longitude, cnt: 2};
+      return (<MapMarker key={uniqueKey} parameters={markerFormat} />)
+    });
+
+    const typeMap = onlyFilledCoordinates.length>0 ? 
+      (              
+      <MapContainer center={[centerLat, centerLng]} scrollWheelZoom={false} className='map-local'
+      bounds={bounds} maxZoom={7}>
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        {coordinates}
+      </MapContainer>
+      ): null;
+
+    /// END of MAP DETAILS
 
     let codirect = null;
     if (showType[0].codirect!==null) {
@@ -177,6 +232,7 @@ export default class Type extends Component {
             {codirect}
             {attribution}
             {addAttribution}
+            {typeMap}
         </div>
         <div className='padding-both'>
           {itemsHeader}

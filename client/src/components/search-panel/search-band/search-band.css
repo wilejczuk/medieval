@@ -18,10 +18,41 @@
 
 .long-column {
   grid-column: span 2;
+  max-height: 30vw;
+
+  @media (max-width: 1111px) {
+    max-height: 100vw;
+  }
 }
 
 .hid-on-small {
   @media (max-width: 650px) {
     visibility: hidden;
   }
+}
+
+.saint-filter {
+  padding: 10px 0 0 10px;
+  width: 300px;
+  display: flex;
+}
+
+.saint-filter input {
+  background-color: transparent; /* Make the background transparent */
+  border: 1px solid grey; /* Add a thin white border */
+  color: grey; /* Set the text color to white */
+  width: 100%; /* Optional: Make the input field expand to fill the container */
+  padding: 5px; /* Optional: Add some padding for better visual appearance */
+}
+
+.saint-filter input:focus {
+  outline: none; 
+  border-color: #00bc8c; 
+}
+
+.show-all-link {
+  cursor: pointer;
+  width: 100px;
+  margin-left: 10px; 
+  font-size: x-small;
 }

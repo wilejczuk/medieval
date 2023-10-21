@@ -55,7 +55,7 @@ export default class Person extends Component {
 
     return (
       <div>
-        <div className="padding-left footer-widget-heading"><h3>{duke.duke.name}</h3></div>
+        <div className="padding-left footer-widget-heading"><h3>{duke.duke.name_en}</h3></div>
         <div className="padding-left padding-bottom dukes-family" style={{float: 'right'}}>{branch}</div>
         <div className="padding-left padding-bottom">{dates}</div>
         {father}

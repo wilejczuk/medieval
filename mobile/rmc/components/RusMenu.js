@@ -3,6 +3,8 @@ import { StyleSheet, Text, View, Image, TouchableOpacity, FlatList, SafeAreaView
 import InternalService from '../services/internal-api';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import PurchasesModal from './modals/PurchasesModal';
 
 export default function RusMenu() {
     const apiData = new InternalService();
@@ -10,7 +12,13 @@ export default function RusMenu() {
     const [data, setData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    const [isModalVisible, setModalVisible] = useState(false);
+
     const navigation = useNavigation();
+
+    const togglePurchasesModal = () => {
+      setModalVisible(true);
+    };
 
     useEffect(() => {
         apiData.getCoinSections()
@@ -36,7 +44,7 @@ export default function RusMenu() {
     const test = [
       {
         id: 6,
-        name_ru: "Киевская русь"
+        name_ru: "Киевская Русь"
       },
       {
         id: 10,
@@ -100,9 +108,18 @@ export default function RusMenu() {
         colors={['#A43C3C', 'rgba(0, 0, 0, 0.8)']}
         style={styles.wrapper}
       >
+
         <View style={styles.header}>
+          <TouchableOpacity onPress={togglePurchasesModal} style={styles.headerButton}>
+            <Ionicons name="cart" size={32} color="#FFFAEE" />
+          </TouchableOpacity>
+          
           <Text style={styles.headerText}>РУСЬ</Text>
+
+          <View style={styles.headerSpace}>
+          </View>
         </View>
+
         <View contentContainerStyle={styles.container}>
           {isLoading ? (
             <ActivityIndicator size="large" color="blue" />
@@ -121,6 +138,9 @@ export default function RusMenu() {
           resizeMode="cover"
         >
         </ImageBackground>
+
+        <PurchasesModal isVisible={isModalVisible} closeModal={() => setModalVisible(false)} />
+        
       </LinearGradient>
     );
 }
@@ -133,13 +153,19 @@ const styles = StyleSheet.create({
 
   header: {
     height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center' 
   },
+
   headerText: {
     color: '#FFFAEE',
     fontSize: 20,
     fontWeight: 'bold',
+  },
+
+  headerSpace: {
+    width: 47 // 32 icon size + left and right margins of headerButton
   },
 
   captionContainer: {
@@ -176,6 +202,11 @@ const styles = StyleSheet.create({
     width: 300, 
     height: 300, 
     opacity: 0.5
+  },
+
+  headerButton: {
+    marginLeft: 10,
+    marginRight: 5
   },
 
   wrapper: {

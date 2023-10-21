@@ -1,4 +1,5 @@
 import axios from 'axios';
+import * as FileSystem from 'expo-file-system';
 
 export default class InternalService {
 
@@ -29,4 +30,26 @@ export default class InternalService {
     return await axios.get(`${this._apiBase}coinType`, {params: params});
   }
 
+  async sendEmail (email, photo, description) {
+    let formData = new FormData();
+
+    const photoInfo = await FileSystem.getInfoAsync(photo);
+    if (photoInfo.exists) {
+        const photoData = await FileSystem.readAsStringAsync(photo, {
+            encoding: FileSystem.EncodingType.Base64,
+        });
+
+        formData.append("email", email);
+        formData.append("photo", photoData);
+        formData.append("description", description);
+
+        return await axios.post(`${this._apiBase}sendMissingPhoto`,
+              formData,
+              { headers: {
+                    'Content-Type': 'multipart/form-data'
+                  }
+              }
+        );
+    }
+  }
 }

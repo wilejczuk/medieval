@@ -12,26 +12,20 @@
   min-width: 320px;
 }
 
-.geo-names-container {
-  max-height: 79vh;
-  overflow: auto;
-  position: relative;
-}
-
-.geo-names-container::-webkit-scrollbar {
+.left-element::-webkit-scrollbar {
   width: 0.5em; /* width of the scrollbar */
 }
 
-.geo-names-container::-webkit-scrollbar-track {
+.left-element::-webkit-scrollbar-track {
   background-color: transparent; /* background color of the track */
 }
 
-.geo-names-container::-webkit-scrollbar-thumb {
+.left-element::-webkit-scrollbar-thumb {
   background-color: inherit; /* color of the thumb */
   border-radius: 10px; /* border radius of the thumb */
 }
 
-.geo-names-container::-webkit-scrollbar-thumb:hover {
+.left-element::-webkit-scrollbar-thumb:hover {
   background-color: inherit; /* color of the thumb on hover */
 }
 
@@ -48,10 +42,24 @@ ul.nodot {
 
 .map-stats{
   display: grid;
-  grid-template-columns: 300px 1fr; 
-  margin-bottom: 20px;
+  grid-template-columns: 1fr 70vw; 
+  grid-template-rows: auto;
 
   @media (max-width: 650px) {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; 
+    grid-template-rows: auto auto; 
+    width: 100%; 
+    height: 100%; 
   }
+}
+
+.left-element {
+  max-height: 70vw;
+  overflow: auto;
+  margin-bottom: 20px;
+}
+
+.right-element {
+  height: 70vw;
+  margin-bottom: 20px;
 }

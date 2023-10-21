@@ -8,9 +8,9 @@ import './map.css';
 export default class MapComponent extends Component {
   state = {
     geos: [],
-    lat: 54.340083,
-    lng: 29.7617912,
-    zoom: 5
+    lat: 54,
+    lng: 30,
+    zoom: 6
   };
 
   geoCoordinates = new InternalService();
@@ -56,29 +56,29 @@ export default class MapComponent extends Component {
     var center = [this.state.lat, this.state.lng];
 
     const { geos } = this.state;
-
     const sitesList = this.renderSites(geos.slice(0).reverse());
     const coordinates = geos.map((el) => {
       const uniqueKey = `spec_${el.id}`
       return (<MapMarker key={uniqueKey} parameters={el} />)
     });
-
+    
     return (
       <div className='map-stats'>
-        <div className='footer-widget-heading padding-both'> 
+        <div className='footer-widget-heading padding-both left-element'> 
           <h3>By find area</h3>
-          <ul className='nodot geo-names-container'> 
+          <ul className='nodot'> 
             {sitesList}
           </ul> 
         </div>
-
-        <MapContainer center={[this.state.lat, this.state.lng]} zoom={this.state.zoom} scrollWheelZoom={false}>
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          {coordinates}
-        </MapContainer>
+        <div >
+          <MapContainer className='right-element' center={[this.state.lat, this.state.lng]} zoom={this.state.zoom} scrollWheelZoom={false}>
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            {coordinates}
+          </MapContainer>
+        </div>
       </div>
     );
   }

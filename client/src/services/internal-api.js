@@ -2,10 +2,10 @@ import axios from 'axios';
 
 export default class InternalService {
 
-  _apiBase = 'http://localhost:3000/';
-  _clientBase = 'http://localhost:3001/';
-  //_apiBase = 'https://server.kievan-rus.online/';
-  //_clientBase = 'https://kievan-rus.online/';
+  //_apiBase = 'http://localhost:3000/';
+  //_clientBase = 'http://localhost:3001/';
+  _apiBase = 'https://server.kievan-rus.online/';
+  _clientBase = 'https://kievan-rus.online/';
 
   token = localStorage.getItem("token");
   defaultHeaders = { headers: 

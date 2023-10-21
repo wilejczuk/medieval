@@ -205,7 +205,7 @@ export default function IssuersCoins({ route }) {
 
                 <Text>   Фото монеты с номером <Text style = {styles.rarBold}>{itemClicked}</Text> нет в каталоге. 
                 Вы можете разместить на этом месте свою монету этого типа. Для этого прикрепите ее изображение и отправьте создателям приложения.</Text>
-                <FeedbackForm />
+                <FeedbackForm closeModal={toggleModal} />
 
               </View>
             </View>

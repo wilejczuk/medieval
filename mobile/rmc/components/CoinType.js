@@ -12,6 +12,7 @@ export default function CoinType({ route }) {
     const navigation = useNavigation();
     const [wishList, setWishList] = useState([]);
     const [message, setMessage] = useState(''); 
+    const [specimenNr, setspecimenNr] = useState(0); 
 
     const handleBackPress = () => {
       navigation.goBack();
@@ -100,6 +101,26 @@ export default function CoinType({ route }) {
       console.log('Item clicked:', itemId);
     };
 
+    const handleNextSpecimen = () => {
+      setspecimenNr(specimenNr+1)
+    };
+
+    const handlePrevSpecimen = () => {
+      setspecimenNr(specimenNr-1)
+    };
+
+    let moreSpecimens, lessSpecimens = null;
+    
+    if (parameter.sideSpecimens && specimenNr < parameter.sideSpecimens)  
+      moreSpecimens = (<TouchableOpacity onPress={handleNextSpecimen} style={styles.thereAreMoreSpecimens}>
+        <Ionicons name="arrow-forward-circle" size={32} color="grey" />
+      </TouchableOpacity>);
+
+    if (parameter.sideSpecimens && specimenNr > 0)  
+      lessSpecimens = (<TouchableOpacity onPress={handlePrevSpecimen} style={styles.thereAreMoreSpecimens}>
+        <Ionicons name="arrow-back-circle" size={32} color="grey" />
+      </TouchableOpacity>);  
+
     return (
       <LinearGradient
         colors={['#A43C3C', 'rgba(0, 0, 0, 0.8)']}
@@ -139,10 +160,13 @@ export default function CoinType({ route }) {
               <Text style={styles.itemDenomination}>
                 {parameter.name_ru}
               </Text>
+              
+              {lessSpecimens}
+              {moreSpecimens}
             </View>
             <View style={styles.imageBox}>
               <Image style={styles.itemImage} resizeMode="contain"
-                source={{ uri: `https://server.kievan-rus.online/coin_specimens/${parameter.jointIndex}.jpg`}}/>
+                source={{ uri: `https://server.kievan-rus.online/coin_specimens/${parameter.jointIndex+specimenNr}.jpg`}}/>
             </View>
             <View> 
                 <Text style={styles.itemName}>
@@ -387,6 +411,10 @@ const styles = StyleSheet.create({
             textTransform: 'lowercase',
             marginTop: 5,
             marginLeft: 15,
+          },
+
+          thereAreMoreSpecimens: {
+            marginLeft: 'auto',
           },
 
   //Modal window

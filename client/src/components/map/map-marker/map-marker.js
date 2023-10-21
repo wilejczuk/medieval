@@ -1,6 +1,6 @@
 import React, { Component }  from 'react';
 import { useNavigate } from "react-router-dom";
-import { Popup, Marker, Circle } from "react-leaflet";
+import { Popup, Marker, Circle, Tooltip } from "react-leaflet";
 import L from "leaflet";
 import InternalService from '../../../services/internal-api';
 import './map-marker.css';
@@ -37,16 +37,19 @@ export default class MapMarker extends Component {
     const path = `${this.stampsData._apiBase}specimens/${id}.${imgType}`;
     const link = `/location/${geo}`;
 
-    const icon = new this.numberedIcon({number: cnt<5?'':cnt});
+    const icon = new this.numberedIcon({number: cnt < 10 ? '•' : cnt});
 
     const radius = 
       cnt===1 ? 5000 :
         cnt<10 ? 10000 : 
-          cnt<20 ? 30000 : 50000;
+          cnt<20 ? 15000 :
+            cnt<50 ? 25000 : 30000;
+    
     const fill = 
-    cnt===1 ? 'grey' :
-      cnt<10 ? 'yellow' : 
-        cnt<20 ? 'orange' : '#800000';
+      cnt===1 ? 'red' :
+        cnt<10 ? 'yellow' : 
+          cnt<20 ? '#3333FF' : 
+            cnt<50 ? 'orange' : '#800000';
 
     return (
       <Marker position={[lat, lon]} icon={icon} eventHandlers={{
@@ -54,6 +57,9 @@ export default class MapMarker extends Component {
           window.location.href = `/location/${geo}`
         },
       }} >
+        <Tooltip>
+          {geo}
+        </Tooltip>    
         <Circle eventHandlers={{
                   click: (e) => {
                     window.location.href = `/location/${geo}`
@@ -65,6 +71,7 @@ export default class MapMarker extends Component {
                 fillOpacity= '0.8'
                 radius={radius}
                  />
+    
       </Marker>
     )
   }

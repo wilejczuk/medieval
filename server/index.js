@@ -253,7 +253,7 @@ app.get('/selectSaint', (req, res) => {
             console.log(error);
         }
         else {
-            return res.json(`${results[0].name} (${results[0].epithet})`);
+            return res.json(`${results[0].name_en} (${results[0].epithet_en})`);
         }
     });
 });
@@ -285,10 +285,16 @@ app.get('/selectDictionaries', (req, res) => {
     let signs = [];
     let crosses = [];
     let letters = [];
-    connection.query(`Select s.id, s.name, s.epithet, s.subGroup, count(s.id) density from saints s 
+    /* Removed sorting by density and connection to personalia partons for now
+    `Select s.id, s.name, s.epithet, s.subGroup, count(s.id) density from saints s 
                         left join personalia p on s.id = p.idPatron 
                         GROUP by s.name, s.epithet
-                        order by density desc, s.name`, function (error, results) {
+                        order by density desc, s.name`
+    */
+    connection.query(`Select s.id, s.name, s.epithet, s.subGroup, 
+                        s.name_en, s.epithet_en from saints s 
+                        GROUP by s.name, s.epithet
+                        order by s.name`, function (error, results) {
         if (error) {
             console.log(error);
         }
@@ -329,7 +335,7 @@ app.get('/selectDictionaries', (req, res) => {
 app.get('/dukeData', (req, res) => {
     let duke = {};
     let descendants = [];
-    connection.query(`select p.*, p2.name father, p3.name husband, p4.id idWife, p4.name wife, s.name patron, b.name_ru branch
+    connection.query(`select p.*, p2.name_en father, p3.name_en husband, p4.id idWife, p4.name_en wife, s.name patron, b.name_en branch
                     from personalia p 
                     left join personalia p2 on p.idFather = p2.id 
                     left join personalia p3 on p.idHusband = p3.id
@@ -342,7 +348,7 @@ app.get('/dukeData', (req, res) => {
         }
         else {
             duke = results[0];
-            connection.query(`select p3.name son, p3.id
+            connection.query(`select p3.name_en son, p3.id
                     from personalia p 
                     right join personalia p3 on p.id = p3.idFather 
                     where p.id = ${req.query['0']}`, function (error, results) {
@@ -413,6 +419,15 @@ from (${grandRequest}) magna
             );
 });
 
+/*
+(sps.copyrightGroup is null or and sps.copyrightGroup!=1) and
+Такую проверку можно добавить для фильтрации сомнительных по авторским правам экземплярам,
+но лучше это делать на уровне grandRequest, перенеся туда join к specimens
+(чтобы не добавлять в 5 местах).
+Кроме того, нужно сделать, чтобы сервер отдавал такие экземпляры в зависимоти от авторизации,
+а также учесть неправильный подсчет specimens в списках при нескольких публикациях одного экземпляра.
+*/
+
 function getDBIndex(group) {
   let index;
   switch (group) {
@@ -443,7 +458,7 @@ const grandRequest = `SELECT DISTINCT tp.id typeId, tp.obvImageGroup, tp.revImag
     st1.description obvDescription, st2.description revDescription, st1.isCoDirectional codirect,
     CASE
         WHEN tp.obvImageGroup = 0 THEN tp.obvText
-        WHEN tp.obvImageGroup = 1 THEN CONCAT(saints1.name, ' ', saints1.epithet)
+        WHEN tp.obvImageGroup = 1 THEN CONCAT(saints1.name_en, ' ', saints1.epithet_en)
         WHEN tp.obvImageGroup = 2 THEN crosses1.name
         WHEN tp.obvImageGroup = 3 THEN 'Ducal sign'
         WHEN tp.obvImageGroup = 4 THEN letters1.symbol
@@ -451,7 +466,7 @@ const grandRequest = `SELECT DISTINCT tp.id typeId, tp.obvImageGroup, tp.revImag
     END as obverse,
     CASE
         WHEN tp.revImageGroup = 0 THEN tp.revText
-        WHEN tp.revImageGroup = 1 THEN CONCAT(saints2.name, ' ', saints2.epithet)
+        WHEN tp.revImageGroup = 1 THEN CONCAT(saints2.name_en, ' ', saints2.epithet_en)
         WHEN tp.revImageGroup = 2 THEN crosses2.name
         WHEN tp.revImageGroup = 3 THEN 'Ducal sign'
         WHEN tp.obvImageGroup = 4 THEN letters2.symbol
@@ -499,7 +514,7 @@ app.get('/dukesStamps',
 });
 
 const coinBaseRequest = `SELECT IFNULL(sp1.id, sp2.id) jointIndex, 
-t.obvText, s.description obvDetail, t.revText, revva.description revDetail, p.id, p.name, p.idBranch, 
+t.obvText, s.description obvDetail, t.revText, sp1.poster sideSpecimens, revva.description revDetail, p.id, p.name, p.idBranch, 
 sp1.rarityMark, k.name_ru, sp1.idObv  
 from coin_types t
 left join coin_stamps s on s.idType = t.id 
@@ -588,7 +603,7 @@ app.get('/dukesList',
     (req, res) => {
         const condition = req.query['0'] ? `and pr.idBranch=${req.query['0']}` : ``;
         
-        connection.query(`select pr.*, count(st.id), i.id pic, i.imgType ext, br.name_ru branch 
+        connection.query(`select pr.*, count(st.id), i.id pic, i.imgType ext, br.name_en branch 
         FROM publicationAttribution pa 
         left join stamps st on pa.idObverse = st.id
         left join personalia pr on pa.idPersona = pr.id
@@ -596,9 +611,9 @@ app.get('/dukesList',
         left join illustrations i on i.idPerson = pr.id
         where pa.isTentative = false
         ${condition} 
-        group by pr.name
+        group by pr.id
         order by pr.dateDeath 
-        limit 24`,
+        `,
                 function (error, results) {
                   if (error) console.log(error);
                   else return res.json (results);
@@ -1015,6 +1030,45 @@ app.post('/sendEmail', (req, res) => {
                 cid: files.reverse.originalFilename
             }
             ]
+        })
+        return res.json(result);
+   });
+
+});
+
+// Mobile app admin contact options
+
+app.post('/sendMissingPhoto', (req, res) => {
+    let form = new formidable.IncomingForm();
+    let transporter = nodemailer.createTransport({
+        host: config.email.host,
+        port: 587,
+        secure: false,
+        auth:     {
+            user: config.email.user, 
+            pass: config.email.pass
+        },
+      });
+
+    form.parse(req, async function(err, fields, files) {
+        const {email, photo, description} = fields;
+
+        let attachments = [];
+        if (photo) {
+            attachments.push({
+                filename: 'image.jpeg',
+                content: Buffer.from(photo, 'base64')
+            });
+        }
+
+        console.log (attachments.length)
+
+        let result = await transporter.sendMail({
+        from: config.email.user,
+        to: config.email.recipient,
+        subject: `Message from ${email}`,
+        text: description,
+        attachments: attachments
         })
         return res.json(result);
    });
