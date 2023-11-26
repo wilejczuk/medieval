@@ -67,12 +67,12 @@ export default class Stamps extends Component {
         });
       }
       else {
-        console.log ("no params"); 
         this.stampsData.getStamps()
           .then((body) => {
             this.setState({
               stampsList: body.data
             });
+            //console.log (body.data); 
           });
       }
     }
@@ -91,9 +91,14 @@ export default class Stamps extends Component {
       let janinNo;
 
       if (pubNo) {
-        const indexSearch = pubNo.search(/[^A-Za-z0-9]/);
-        janinNo = idPublication==2 ? indexSearch===-1 ? 'Yanin #' + pubNo : 'Yanin #' + pubNo.substring(0, indexSearch) : null;
+        const indexSearch = pubNo.search(/[^A-Za-z0-9\u0410-\u044F\u0410-\u042F]/);
+        const YaninOrGaydukov = idPublication == 10 ? 'Y/G' : 'Yanin';
+        janinNo = [2, 10, 46].includes(idPublication) ? indexSearch===-1 ? 
+          `${YaninOrGaydukov} #` + pubNo :
+          `${YaninOrGaydukov} #` + pubNo.substring(0, indexSearch) : null;
       }
+
+      const janinClass = idPublication == 2 ? 'janin-2 capitalize' : idPublication == 10 ? 'janin-10 capitalize' : 'janin-46 capitalize';
 
       const uniqueKey = `${obv}-${rev}`;
       return (
@@ -105,7 +110,7 @@ export default class Stamps extends Component {
             </a>
           </div>
           <div className="top-add">
-            <div className="janin-nr capitalize"> {janinNo} </div>
+            <div className={janinClass}> {janinNo} </div>
             <div>{obverse} <br /> {reverse} <div className="quantity"> <b>Specimens</b>: {cnt} listed</div></div>
           </div>
         </div>

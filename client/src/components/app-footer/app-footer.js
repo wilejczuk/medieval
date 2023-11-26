@@ -40,6 +40,7 @@ export default class AppFooter extends Component {
                             </ul>
                         </div>
                     </div>
+                    {/*
                     <div className="col-xl-4 col-lg-4 col-md-6 mb-50">
                         <div className="footer-widget">
                             <div className="footer-widget-heading">
@@ -56,6 +57,7 @@ export default class AppFooter extends Component {
                             </div>
                         </div>
                     </div>
+                    */}
                 </div>
             </div>
         </div>

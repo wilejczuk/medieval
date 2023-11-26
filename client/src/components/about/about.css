@@ -1,0 +1,83 @@
+  .fifty-fifty {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    text-align: justify;
+
+    @media (max-width: 1000px) {
+        grid-template-columns: 1fr;
+    }
+  }
+
+  .padding-left {
+      padding:  10px 0 0 15px;
+      @media (max-width: 1000px) {
+        padding: 10px 15px 0 15px;
+    }
+  }
+  
+  .video-container {
+    position: relative;
+    width: 100%;
+  }
+  
+  .video-container video {
+    width: 100%;
+    object-fit: cover; /* Adjust as needed for video aspect ratio */
+    z-index: 1; /* Ensure the video is on top of the gradient overlay */
+    border-radius: 5px;
+    padding: 15px;
+  }
+  
+  .gradient-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(0deg, rgba(26, 30, 46, 1), rgba(26, 30, 46, 0.7), rgba(26, 30, 46, 0.7), rgba(26, 30, 46, 1));
+    z-index: 2; /* Set a higher z-index to ensure it's above the video */
+    pointer-events: none; /* Allow interaction with the video element below */
+  }
+  
+  .toggle-button {
+    background-color: #00bc8c; /* Red background color (similar to YouTube) */
+    top: 20px; /* Adjust as needed to position the button from the top */
+    left: 20px; /* Adjust as needed to position the button from the left */
+    z-index: 3; /* Ensure the button is above other elements */
+    color: #FFFFFF; /* White text color */
+    border: none;
+    border-radius: 10px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s; /* Smooth color transition on hover */
+    width: 100px;
+    height: 40px;
+    position: absolute;
+  }
+  
+  .toggle-button::before {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 10px 0 10px 20px;
+    border-color: transparent transparent transparent #fff; /* White triangle */
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .toggle-button span {
+    margin-left: 24px; 
+  }
+  
+  .toggle-button:hover {
+    background-color: #CC0000; /* Darker red on hover */
+  }
+  
+  .toggle-button:focus {
+    outline: none; /* Remove the default focus outline */
+  }
+  

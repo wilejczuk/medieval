@@ -21,9 +21,23 @@
   align-items: center; /* Center vertically */
 }
 
-.janin-nr{
+.janin-2{
   margin-right: 10px;
   background-color: darksalmon;
+  max-width: 50px;
+  text-align: center; /* Center the text horizontally */
+}
+
+.janin-10{
+  margin-right: 10px;
+  background-color: rgb(200, 211, 198);
+  max-width: 50px;
+  text-align: center; /* Center the text horizontally */
+}
+
+.janin-46{
+  margin-right: 10px;
+  background-color: rgb(112, 134, 233);
   max-width: 50px;
   text-align: center; /* Center the text horizontally */
 }

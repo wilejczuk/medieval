@@ -406,12 +406,38 @@ app.get('/personalia-with-saints', (req, res) => {
 
 app.get('/stamps',
         (req, res) => {
-            connection.query(`select magna.*, count(sps.id) cnt, pS.number pubNo, pS.idPublication
+            connection.query(`select magna.*, count(distinct sps.id) cnt, ${yaninsSelections}
 from (${grandRequest}) magna
                   inner join specimens sps on magna.obv = sps.idObv and magna.rev = sps.idRev
                   left join publicationSpecimen pS on sps.id = pS.idSpecimen
                   where not (magna.obvImageGroup=0 and magna.revImageGroup = 0 and magna.obvImageId > 0 and magna.revImageId > 0)
                   group by sps.idObv, sps.idRev`,
+                    function (error, results) {
+                      if (error) console.log(error);
+                      else return res.json (results);
+                    }
+            );
+});
+
+app.get('/stampsSorted',
+        (req, res) => {
+            connection.query(`select * from (select magna.*, count(distinct sps.id) cnt, ${yaninsSelections}
+from (${grandRequest}) magna
+                  inner join specimens sps on magna.obv = sps.idObv and magna.rev = sps.idRev
+                  left join publicationSpecimen pS on sps.id = pS.idSpecimen
+                  where not (magna.obvImageGroup=0 and magna.revImageGroup = 0 and magna.obvImageId > 0 and magna.revImageId > 0)
+                  group by sps.idObv, sps.idRev) x
+                  ORDER BY
+                  CASE
+                    WHEN idPublication in (2,10,46) THEN 1  
+                    ELSE 2  
+                  END,
+                  CASE
+                    WHEN idPublication in (2,10,46) THEN CAST(pubNo AS SIGNED)
+                  END,
+                  CASE
+                    WHEN idPublication in (2,10,46) THEN pubNo 
+                  END`,
                     function (error, results) {
                       if (error) console.log(error);
                       else return res.json (results);
@@ -493,11 +519,14 @@ from publications p
 left join publicationAuthor pa on p.id = pa.idPublication 
 left join authors a on a.id = pa.idAuthor 
 left join journals j on j.id = p.idJournal 
-GROUP by p.id)`
+GROUP by p.id)`;
+
+const yaninsSelections = `MAX(CASE WHEN pS.idPublication in (2,10,46) THEN pS.idPublication ELSE NULL END) AS idPublication,
+MAX(CASE WHEN pS.idPublication in (2,10,46) THEN pS.number ELSE NULL END) AS pubNo`;
 
 app.get('/dukesStamps',
     (req, res) => {
-        connection.query(`select magna.*, count(sps.id) cnt, per.name issuerName, pS.number pubNo, pS.idPublication
+        connection.query(`select magna.*, count(DISTINCT sps.id) cnt, per.name issuerName, ${yaninsSelections}
         from (${grandRequest}) magna
               inner join specimens sps on magna.obv = sps.idObv and magna.rev = sps.idRev
               left join publicationSpecimen pS on sps.id = pS.idSpecimen
@@ -636,7 +665,7 @@ app.get('/parametrizedStamps',
             };
 
             let searchString =
-            `select magna.*, count(sps.id) cnt, pS.number pubNo, pS.idPublication
+            `select magna.*, count(distinct sps.id) cnt, ${yaninsSelections}
             from specimens sps
             left join publicationSpecimen pS on sps.id = pS.idSpecimen
             inner join (${grandRequest}

@@ -2,10 +2,10 @@ import axios from 'axios';
 
 export default class InternalService {
 
-  //_apiBase = 'http://localhost:3000/';
-  //_clientBase = 'http://localhost:3001/';
-  _apiBase = 'https://server.kievan-rus.online/';
-  _clientBase = 'https://kievan-rus.online/';
+  _apiBase = 'http://localhost:3000/';
+  _clientBase = 'http://localhost:3001/';
+  //_apiBase = 'https://server.kievan-rus.online/';
+  //_clientBase = 'https://kievan-rus.online/';
 
   token = localStorage.getItem("token");
   defaultHeaders = { headers: 
@@ -31,7 +31,10 @@ export default class InternalService {
   }
 
   async getStamps() {
-    return await axios.get(`${this._apiBase}stamps`);
+    if (localStorage.getItem("token")) 
+      return await axios.get(`${this._apiBase}stamps`) 
+    else
+      return await axios.get(`${this._apiBase}stampsSorted`);
   }
 
   async getDukes(params) {
