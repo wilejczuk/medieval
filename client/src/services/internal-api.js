@@ -2,10 +2,10 @@ import axios from 'axios';
 
 export default class InternalService {
 
-  _apiBase = 'http://localhost:3000/';
-  _clientBase = 'http://localhost:3001/';
-  //_apiBase = 'https://server.kievan-rus.online/';
-  //_clientBase = 'https://kievan-rus.online/';
+  //_apiBase = 'http://localhost:3000/';
+  //_clientBase = 'http://localhost:3001/';
+  _apiBase = 'https://server.kievan-rus.online/';
+  _clientBase = 'https://kievan-rus.online/';
 
   token = localStorage.getItem("token");
   defaultHeaders = { headers: 
@@ -53,6 +53,14 @@ export default class InternalService {
     return await axios.get(`${this._apiBase}literature`);
   }
 
+  async getSpecimensCount() {
+    return await axios.get(`${this._apiBase}getSpecimensCount`);
+  }
+
+  async getAttributionsCount() {
+    return await axios.get(`${this._apiBase}getAttributionsCount`);
+  }
+
   async getCoordinates(address) {
     return await axios.get(`https://geocode.maps.co/search?q="${address}"`);
   }
@@ -69,8 +77,12 @@ export default class InternalService {
     return await axios.get(`${this._apiBase}locationSpecimens`, {params: params});
   }
 
-  async getPublicationSpecimens(params) {
+  async getPublicationSpecimens() {
     return await axios.get(`${this._apiBase}publicationSpecimens`);
+  }
+
+  async getPublicationsAdvanced() {
+    return await axios.get(`${this._apiBase}publicationsAdvanced`);
   }
 
   async getTypeAttributions(params) {
@@ -87,6 +99,10 @@ export default class InternalService {
 
   async getDuke(params) {
     return await axios.get(`${this._apiBase}dukeData`, {params: params});
+  }
+
+  async getPersonContemporaries(params) {
+    return await axios.get(`${this._apiBase}contemporaries`, {params: params});
   }
 
   async getDictionaries() {
@@ -136,6 +152,18 @@ export default class InternalService {
     if (number!=='') formData.append("number", number);
 
     return await axios.post(`${this._apiBase}specimen`,
+          formData, this.defaultHeaders
+    );
+  }
+
+  async addPublication(publication, page, number, idSpecimen) {
+    let formData = new FormData();
+    formData.append("idSpecimen", idSpecimen);
+    formData.append("publication", publication);
+    if (page!=='') formData.append("page", page);
+    if (number!=='') formData.append("number", number);
+
+    return await axios.post(`${this._apiBase}addPublication`,
           formData, this.defaultHeaders
     );
   }

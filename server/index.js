@@ -18,7 +18,7 @@ const ExtractJWT = passportJWT.ExtractJwt;
 const nodemailer = require('nodemailer');
 const config = require('./config.json');
 
-const env = "test";
+const env = "prod";
  
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", config[env].url);
@@ -88,6 +88,7 @@ passport.use(new JWTStrategy({
 app.use('/addAttribution', passport.authenticate('jwt', {session: false}));
 app.use('/typeAndSpecimen', passport.authenticate('jwt', {session: false}));
 app.use('/specimen', passport.authenticate('jwt', {session: false}));
+app.use('/addPublication', passport.authenticate('jwt', {session: false}));
 
 /*Passport JS*/
 
@@ -335,11 +336,15 @@ app.get('/selectDictionaries', (req, res) => {
 app.get('/dukeData', (req, res) => {
     let duke = {};
     let descendants = [];
-    connection.query(`select p.*, p2.name_en father, p3.name_en husband, p4.id idWife, p4.name_en wife, s.name patron, b.name_en branch
+    connection.query(`select p.*, p2.name_en father, p3.name_en husband, p4.id idWife, p4.name_en wife,
+                    p5.name_en successor, p6.id idPredecessor, p6.name_en predecessor, 
+                    s.name patron, b.name_en branch
                     from personalia p 
                     left join personalia p2 on p.idFather = p2.id 
                     left join personalia p3 on p.idHusband = p3.id
                     left join personalia p4 on p.id = p4.idHusband
+                    left join personalia p5 on p.idSuccessor = p5.id
+                    left join personalia p6 on p.id = p6.idSuccessor
                     left join saints s on p.idPatron = s.id
                     left join branches b on b.id = p.idBranch
                     where p.id = ${req.query['0']}`, function (error, results) {
@@ -362,6 +367,20 @@ app.get('/dukeData', (req, res) => {
             });
         }
     });
+});
+
+app.get('/contemporaries',
+        (req, res) => {
+            connection.query(`select id, name_en, dateBirth, datePower, dateDeath, birthProximity, powerProximity, deathProximity, idBranch from personalia 
+            where datePower > (select datePower from personalia where id= ${req.query['0']}) 
+            and datePower < (select dateDeath from personalia where id= ${req.query['0']})
+            and id!= ${req.query['0']}
+            order by datePower`,
+                    function (error, results) {
+                      if (error) console.log(error);
+                      else return res.json(results);
+                    }
+            );
 });
 
 app.get('/personalia-list',
@@ -445,15 +464,6 @@ from (${grandRequest}) magna
             );
 });
 
-/*
-(sps.copyrightGroup is null or and sps.copyrightGroup!=1) and
-Такую проверку можно добавить для фильтрации сомнительных по авторским правам экземплярам,
-но лучше это делать на уровне grandRequest, перенеся туда join к specimens
-(чтобы не добавлять в 5 местах).
-Кроме того, нужно сделать, чтобы сервер отдавал такие экземпляры в зависимоти от авторизации,
-а также учесть неправильный подсчет specimens в списках при нескольких публикациях одного экземпляра.
-*/
-
 function getDBIndex(group) {
   let index;
   switch (group) {
@@ -511,7 +521,7 @@ const grandRequest = `SELECT DISTINCT tp.id typeId, tp.obvImageGroup, tp.revImag
     left join letters letters2 on letters2.id = tp.revImageId
     where st1.isObverse and st1.id!=st2.id`; 
 
-const compositePublications = `(select p.id, p.year,
+const compositePublications = `(select p.id, p.year, p.copyright,
     CASE WHEN j.acronym is not null THEN                               
     CONCAT(GROUP_CONCAT(a.name_ru ORDER BY p.id, pa.id SEPARATOR ', '), ', ', p.name, ' // ', j.acronym, ', v.' , p.number, ', ', p.place, '.')
     else CONCAT(GROUP_CONCAT(a.name_ru ORDER BY p.id, pa.id SEPARATOR ', '), ', ', p.name, ', ', p.place, '.') END name   
@@ -700,14 +710,8 @@ app.get('/specimensGeo',
             group by geo
             order by cnt`;
 
-            /* logic behind it: aggregate results with the same coordinates, but different names, e.g. 
-            Полоцк and Полацк
-
-            But it breaks the logics of coordinates updating, so may need to invent something else
-
-            and latitude is not null 
-            group by latitude, longitude
-            
+            /* Собираются экземпляры с одинаковыми именами, так что если хотя бы у одного координаты
+            заполнены, а у других нет - они тоже будут посчитаны
             */
 
             connection.query(searchString,
@@ -768,17 +772,14 @@ app.get('/typeAttributions',
 
 app.get('/type',
         (req, res) => {
-            console.log(req.query);
-
             let searchString =
-                    `select s.*, pub.name, pub.year, ps.page, ps.number from
+                    `select s.*, pub.name, pub.year, pub.copyright, ps.page, ps.number from
                      (select sps.*, magna.*
                       from specimens sps
                       inner join (${grandRequest}) magna on magna.obv = sps.idObv and magna.rev = sps.idRev
                         where sps.idObv=${req.query['0']} and sps.idRev=${req.query['1']}) s
                               left join publicationSpecimen ps on ps.idSpecimen = s.id
                               left join ${compositePublications} pub on pub.id = ps.idPublication`;
-                  console.log(searchString);
             connection.query(searchString,
                     function (error, results) {
                       if (error) console.log(error);
@@ -790,20 +791,45 @@ app.get('/type',
 app.get('/locationSpecimens',
         (req, res) => {
             let searchString =
-                    `select s.*, pub.name, pub.year, ps.page, ps.number from
+                    `select s.*, pub.name, pub.year, pub.copyright, ps.page, ps.number from
                      (select sps.*, magna.*
                       from specimens sps
                       inner join (${grandRequest}) magna on magna.obv = sps.idObv and magna.rev = sps.idRev
                         where sps.geo='${req.query['0']}') s
                               left join publicationSpecimen ps on ps.idSpecimen = s.id
                               left join ${compositePublications} pub on pub.id = ps.idPublication`;
-                  console.log(searchString);
             connection.query(searchString,
                     function (error, results) {
                       if (error) console.log(error);
                       else return res.json (results);
                     }
             );
+});
+
+app.get('/getSpecimensCount',
+(req, res) => {
+    let searchString = `select count(1) from specimens`;
+    connection.query(searchString,
+            function (error, results) {
+              if (error) console.log(error);
+              else return res.json (results[0]);
+            }
+    );
+});
+
+app.get('/getAttributionsCount',
+(req, res) => {
+    let searchString = `SELECT p.id, p.name_en, count(1) cnt
+    FROM publicationAttribution pA 
+    left join personalia p on p.id=pA.idPersona 
+    group by pA.idPersona 
+    order by count(1) desc`;
+    connection.query(searchString,
+            function (error, results) {
+              if (error) console.log(error);
+              else return res.json (results[0]);
+            }
+    );
 });
 
 app.get('/publicationSpecimens',
@@ -814,6 +840,28 @@ app.get('/publicationSpecimens',
                     left join publicationSpecimen ps on p.id = ps.idPublication 
                     GROUP by p.id
                     order by count(ps.id) desc`;
+            connection.query(searchString,
+                    function (error, results) {
+                      if (error) console.log(error);
+                      else return res.json (results);
+                    }
+            );
+});
+
+app.get('/publicationsAdvanced',
+        (req, res) => {
+            let searchString =
+                    `select p.id, p.name, p.year, p.journal, p.number, p.place, count(ps.id) count 
+                    from (select p.id, p.year, p.copyright, j.name journal, p.number, p.place,
+                        CONCAT(GROUP_CONCAT(a.name_ru ORDER BY p.id, pa.id SEPARATOR ', '), ', ', p.name) name   
+                    from publications p 
+                    left join publicationAuthor pa on p.id = pa.idPublication 
+                    left join authors a on a.id = pa.idAuthor 
+                    left join journals j on j.id = p.idJournal 
+                    GROUP by p.id) p 
+                            left join publicationSpecimen ps on p.id = ps.idPublication 
+                            GROUP by p.id
+                            order by p.year, p.number`;
             connection.query(searchString,
                     function (error, results) {
                       if (error) console.log(error);
@@ -885,6 +933,20 @@ app.post('/specimen',
                      }
                    }
            );
+      });
+ });
+
+ app.post('/addPublication',
+    (req, res) => {
+       var form = new formidable.IncomingForm();
+       form.parse(req, function(err, fields) {
+           const {publication, page, number, idSpecimen} = fields;
+           connection.query(`Insert into publicationSpecimen(idSpecimen, idPublication, page, number)
+           values(?,?,?,?)`, [idSpecimen, parseInt(publication), page, number],
+              function (error, results) {
+                if (error) console.log(error);
+                else return res.json (results);
+            });
       });
  });
 

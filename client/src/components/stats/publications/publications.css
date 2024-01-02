@@ -1,0 +1,26 @@
+.count_specimens {
+    display: inline-block;
+    border-radius: 50%;
+    background-color: teal;
+    margin-left: 10px;
+  }
+
+  .journals_article {
+    padding-left: 50px;
+  }
+
+  .journal {
+    padding-bottom: 10px;
+    padding-left: 20px;
+    padding-top: 10px;
+    font-weight: bold;
+  }
+
+  .separate_book {
+    padding-top: 10px;
+    padding-left: 20px;
+  }
+
+  .year {
+    padding-bottom: 10px;
+  }

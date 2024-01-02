@@ -1,4 +1,5 @@
 import React, { Component }  from 'react';
+import CountUp from 'react-countup';
 import './app-footer.css';
 
 import InternalService from '../../services/internal-api';
@@ -8,9 +9,40 @@ export default class AppFooter extends Component {
   stampsData = new InternalService();
   svenssons = `${this.stampsData._clientBase}svenssons.jpeg`;
 
+  state = {
+    specimensCount: 0,
+    recordsman: null
+  };
+
+  componentDidMount() {
+    this.stampsData.getSpecimensCount()
+      .then((body) => {
+        this.setState({
+            specimensCount: body.data["count(1)"],
+        });
+      });
+
+    this.stampsData.getAttributionsCount()
+      .then((body) => {
+        this.setState({
+            recordsman: body.data,
+        });
+      });  
+  }
+
   render() {
+
+    const {specimensCount, recordsman } = this.state;
+    if ((!specimensCount) || (!recordsman)) {
+        return (
+          <h3>Loading.</h3>
+        )
+      }
+
+    const recordsmanLink = `/person/${recordsman['id']}`;
+
     return (
-<footer className="footer-section">
+    <footer className="footer-section">
         <div className="container">
             <div className="footer-content pt-5 pb-5">
                 <div className="row">
@@ -35,8 +67,9 @@ export default class AppFooter extends Component {
                             <ul>
                                 <li><a href="/">Home</a></li>
                                 <li><a href="/about">About the system</a></li>
-                                <li><a href="/stats">Database stats</a></li>
+                                <li><a href="/stats">Geography</a></li>
                                 <li><a href='mailto:creators@kievan-rus.online'>Contact us</a></li>
+                                <li><a href="/publications">Bibliography</a></li>
                             </ul>
                         </div>
                     </div>
@@ -57,7 +90,35 @@ export default class AppFooter extends Component {
                             </div>
                         </div>
                     </div>
-                    */}
+                    */
+                    <div className="col-xl-4 col-lg-4 col-md-6 mb-50 centered">
+                        Seals in the database
+                        <br />
+                    <CountUp
+                        className="numbers"
+                        start={0}
+                        end={specimensCount}
+                        duration={8}
+                        useEasing={true}
+                        useGrouping={true}
+                        separator=" "
+                        decimals={0}
+                    />
+                    <br /><br />
+                        Most attributed seals belong to <br /> 
+                        <a href={recordsmanLink}>{recordsman['name_en']}</a>
+                        <br />
+                    <CountUp
+                        className="numbers"
+                        start={0}
+                        end={recordsman['cnt']}
+                        duration={8}
+                        useEasing={true}
+                        useGrouping={true}
+                        separator=" "
+                        decimals={0}
+                    />
+                    </div>}
                 </div>
             </div>
         </div>
@@ -66,7 +127,7 @@ export default class AppFooter extends Component {
                 <div className="row">
                     <div className="col-xl-6 col-lg-6 text-center text-lg-left">
                         <div className="copyright-text">
-                            <p>Copyright &copy; 2023</p>
+                            <p>Copyright &copy; 2023-2024</p>
                         </div>
                     </div>
                 </div>

@@ -97,13 +97,15 @@ export default class Type extends Component {
 
   render() {
 
-    const { showType, typeAttributions, mode } = this.state;
+    let { showType, typeAttributions, mode } = this.state;
 
     if (!showType || !typeAttributions || showType.length===0) {
       return (
         <h3>List of stamps is empty.</h3>
       )
     }
+
+    showType = showType.slice().sort((a, b) => a.year - b.year);
 
     const addMore = this.canAdd(localStorage.getItem("token") ? true : false);
     const addAttribution = this.canAddAttribution(localStorage.getItem("token") ? true : false);
@@ -153,7 +155,7 @@ export default class Type extends Component {
     const onlyFilledCoordinates = this.state.showType.filter((el) => el.longitude && el.latitude )
 
     const coordinates = onlyFilledCoordinates.map((el) => {
-      const uniqueKey = `spec_${el.id}`
+      const uniqueKey = `specimen_${el.id}`
       const markerFormat = {id: el.id, imgType: el.imgType, idObv: el.idObv, idRev: el.idRev,
          geo:el.geo, lat: el.latitude, lon: el.longitude, cnt: 2};
       return (<MapMarker key={uniqueKey} parameters={markerFormat} />)
@@ -212,7 +214,7 @@ export default class Type extends Component {
         panelClass = "items-pad";
         break;
       default:
-        items = (<Specimens items={showType} />);
+        items = (<Specimens onAdded={() => this.completeAdd()} items={showType} />);
   
         itemsHeader = (<div className="footer-widget-heading"><h3>Known specimens</h3></div>);
     

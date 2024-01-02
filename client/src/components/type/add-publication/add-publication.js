@@ -2,12 +2,11 @@ import React, { Component }  from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import InternalService from '../../../services/internal-api';
 import Loading from '../../loading';
-import Upload from '../upload';
 
-import './add-specimen.css';
+import './add-publication.css';
 import { getCookie } from '../../../helpers/cookie';
 
-export default class AddSpecimen extends Component {
+export default class AddPublication extends Component {
 
   stampsData = new InternalService();
 
@@ -37,8 +36,8 @@ export default class AddSpecimen extends Component {
     })
   }
 
- sendSpecimen (picture, size, weight, findingSpot, findingSpotComments, poster, publication, idObv, idRev, page, number) {
-    this.stampsData.addSpecimen(picture, size, weight, findingSpot, findingSpotComments, poster, publication, idObv, idRev, page, number)
+ sendPublication (publication, page, number, idSpecimen) {
+    this.stampsData.addPublication(publication, page, number, idSpecimen)
       .then(response => {
         this.setState({
           loading: false
@@ -63,23 +62,18 @@ export default class AddSpecimen extends Component {
 
     return (
       <Formik
-         initialValues={{ size: '', weight: '', findingSpot: '', findingSpotComments: '',
-           publication: defaultPublication, page: '', number: '', picture: null, poster: localStorage.getItem("user"),
-           idObv: defaultValues[0], idRev: defaultValues[1]}}
+         initialValues={{ publication: defaultPublication, page: '', number: '', idSpecimen: defaultValues[0]}}
 
          validate={values => {
            const errors = {};
-          if (!values.picture) {
-            errors.picture = 'required';
-          }
-           if (!values.page && values.publication!=25) { // 'Unpublished'
-             errors.page = 'required';
+           if (!values.page) { 
+              errors.page = 'required';
            }
-           if (!values.number && values.publication!=25) { // 'Unpublished'
-            errors.number = 'required';
+           if (!values.number) {
+              errors.number = 'required';
            }
            if (!values.publication) {
-             errors.publication = 'required';
+              errors.publication = 'required';
            }
            return errors;
          }}
@@ -88,52 +82,18 @@ export default class AddSpecimen extends Component {
              loading: true
            });
            setTimeout(() => {
-             this.sendSpecimen(values.picture, values.size, values.weight, values.findingSpot,
-               values.findingSpotComments, values.poster,
-               values.publication, values.idObv, values.idRev, values.page, values.number);
+             this.sendPublication(values.publication, values.page, values.number, values.idSpecimen);
              setSubmitting(false);
            }, 400);
          }}
        >
          {({ isSubmitting, values, setFieldValue }) => (
-           <Form className='spec-column' encType="multipart/form-data">
-                     <div>
-                         <Upload onChange={(file) => {
-                              setFieldValue("picture", file);
-                            }} />
-                         <ErrorMessage className="error-message" name="picture" component="div" />
-
-                         <div className='form-line'>
-                            <div className='form-inside'>
-                              Size, mm
-                            </div>
-                            <Field  type="number" name="size" />
-                         </div>
-
-                         <div className='form-line'>
-                            <div className='form-inside'>
-                              Weight, g
-                            </div>
-                            <Field  type="number" name="weight" />
-                          </div>
-
-                          <div className='form-line double-element'>
-                             <div className="long-text-caption">
-                               Finding spot
-                             </div>
-                             <Field className='spot' type="text" name="findingSpot" />
-                          </div>
-
-                          <div className='form-line double-element'>
-                             <div className="long-text-caption">
-                               Additional comments
-                             </div>
-                             <Field component="textarea" className='spot-comments' name="findingSpotComments" />
-                          </div>
-
+           <Form encType="multipart/form-data">
+                    <div>
                           <div>
                             <hr />
-                            <b>First publication</b>
+                            <span className="greyish right_side"><a onClick={this.props.onAdded} title="Cancel">x</a></span>
+                            <b>Publication</b>
                             <div>
                                 <ErrorMessage className="error-message" name="publication" component="div" />
                               </div>
@@ -166,8 +126,7 @@ export default class AddSpecimen extends Component {
                           <hr />
                             <button className="button-two" type="submit" disabled={isSubmitting}><span>Save to the database!</span></button>
                           </div> 
-
-                         </div>
+                    </div>
            </Form>
          )}
        </Formik>

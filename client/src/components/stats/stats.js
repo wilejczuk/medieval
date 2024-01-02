@@ -1,6 +1,7 @@
 import React, { Component }  from 'react';
 
 import InternalService from '../../services/internal-api';
+import Publications from './publications';
 import './stats.css';
 
 export default class Stats extends Component {
@@ -8,17 +9,23 @@ export default class Stats extends Component {
   stampsData = new InternalService();
 
   state = {
-    allPublishedSpecimens: null
+    allPublishedSpecimens: null,
+    publicationsAdvanced: null
   };
 
   componentDidMount() {    
     this.stampsData.getPublicationSpecimens()
       .then((body) => {
-        console.log(body.data)
         this.setState({
           allPublishedSpecimens: body.data,
         });
       });
+    this.stampsData.getPublicationsAdvanced()
+    .then((body) => {
+      this.setState({
+        publicationsAdvanced: body.data,
+      });
+    });  
   }
 
   renderSites(arr) {
@@ -44,9 +51,9 @@ export default class Stats extends Component {
 
   render() {
 
-    const { allPublishedSpecimens } = this.state;
+    const { allPublishedSpecimens, publicationsAdvanced } = this.state;
 
-    if (!allPublishedSpecimens) {
+    if (!allPublishedSpecimens || !publicationsAdvanced) {
       return (
         <h3>List is empty.</h3>
       )

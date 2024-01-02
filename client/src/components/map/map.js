@@ -20,13 +20,17 @@ export default class MapComponent extends Component {
       .then((body) => {
         let allGeo = [];
         body.data.map(({geo, idObv, idRev, id, imgType, latitude, longitude, cnt}) => {
-          if (latitude) allGeo.push({idObv, idRev, id, imgType, lat:latitude, lon:longitude, geo, cnt});
+          if (latitude !== null && latitude !== undefined) allGeo.push({idObv, idRev, id, imgType, lat:latitude, lon:longitude, geo, cnt});
           else {
             this.geoCoordinates.getCoordinates(geo).then((geocode) => {
               if (geocode.data.length>0) {
                 allGeo.push({idObv, idRev, id, imgType, lat:geocode.data[0].lat, lon:geocode.data[0].lon, geo, cnt});
                 this.geoCoordinates.setCoordinates([id, geocode.data[0].lat, geocode.data[0].lon]);
               }
+              else {
+                //Координаты не найдены, придется искать вручную, а пока помечаем нулями
+                this.geoCoordinates.setCoordinates([id, 0, 0]);
+              }  
             });
           }
         });

@@ -143,3 +143,11 @@ margin-left: 20px;
 font-size: 14px;
 color: #878787;
 }
+
+.centered {
+  text-align: center;
+}
+
+.numbers{
+  font-size: 48px;
+}

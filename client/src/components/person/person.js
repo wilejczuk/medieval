@@ -7,7 +7,8 @@ export default class Person extends Component {
   data = new InternalService();
 
   state = {
-    duke: null
+    duke: null,
+    contemporaryPersonalia: null
   };
 
   componentDidMount() {
@@ -19,6 +20,13 @@ export default class Person extends Component {
             duke: body.data
           });
         });
+
+    this.data.getPersonContemporaries([searchParams["id"]])
+    .then((body) => {
+      this.setState({
+        contemporaryPersonalia: body.data
+      });
+    });    
   }
 
   renderItems(arr) {
@@ -31,14 +39,33 @@ export default class Person extends Component {
         );
     });
   }
+
+  renderContemporaries(contemporaries) {
+    return contemporaries.map(({id, name_en, dateBirth, datePower, dateDeath, birthProximity, powerProximity, deathProximity, idBranch}, index) => {
+        const uniqueKey = `cont${id}`;
+        const birth = dateBirth ? `${birthProximity?'≈':''}${dateBirth} ` : '';
+        const power = datePower ? `ϡ ${powerProximity?'≈':''}${datePower} ` : '';
+        const death = dateDeath ? `† ${deathProximity?'≈':''}${dateDeath}` : '';
+        const dates = ` (${death})`;
+        const delimiter = (index === contemporaries.length - 1) ? "":",";
+        const priest = (idBranch == 7 || idBranch == 8) ? 
+          (<img style={{ filter: "brightness(0) invert(1)"}} height='14' src='./../../../icons/priest.png' />) : null;
+        return (
+            <span key={uniqueKey}>
+              <a href={id}>{priest} {name_en} {dates}</a>{delimiter}&nbsp;
+            </span>  
+        );
+    });
+  }
   
   render() {
-    const { duke } = this.state;
+    const { duke, contemporaryPersonalia } = this.state;
     
-    if (!duke) {
+    if (!duke || !contemporaryPersonalia) {
       return (<br />)
     }
     const descendants = this.renderItems(duke.descendants);
+    const contemporaries = this.renderContemporaries(contemporaryPersonalia);
 
     const classNames = 'padding-left padding-bottom dukes-family';
 
@@ -49,7 +76,10 @@ export default class Person extends Component {
     const father = duke.duke.father ? (<div className={classNames}>Father: <li><a href={duke.duke.idFather}>{duke.duke.father}</a></li></div>) : null;
     const husband = duke.duke.husband ? (<div className={classNames}>Husband: <li><a href={duke.duke.idHusband}>{duke.duke.husband}</a></li></div>) : null;
     const wife = duke.duke.wife ? (<div className={classNames}>Wife: <li><a href={duke.duke.idWife}>{duke.duke.wife}</a></li></div>) : null;
+    const successor = duke.duke.successor ? (<div className={classNames}>Successor: <li><a href={duke.duke.idSuccessor}>{duke.duke.successor}</a></li></div>) : null;
+    const predecessor = duke.duke.predecessor ? (<div className={classNames}>Predecessor: <li><a href={duke.duke.idPredecessor}>{duke.duke.predecessor}</a></li></div>) : null;
     const descendantItems = duke.descendants.length > 0 ? (<div className={classNames}>Descendants: {descendants}</div>) : null;
+    const contemporariesItems = contemporaries.length > 0 ? (<div className={classNames}>Contemporaries: {contemporaries}</div>) : null;
     const branchLink = `/${duke.duke.idBranch}`;
     const branch = duke.duke.branch ? (<div>Branch: <a href={branchLink}>{duke.duke.branch}</a></div>) : null;
 
@@ -62,7 +92,10 @@ export default class Person extends Component {
         {husband}
         {wife}
         {descendantItems}
+        {predecessor}
+        {successor}
         <div className="padding-left story-description">{duke.duke.story}</div>
+        {contemporariesItems}
       </div>
     )
   }

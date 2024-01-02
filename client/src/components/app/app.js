@@ -19,6 +19,7 @@ import Type from '../type';
 import AddType from '../type/add-type';
 import Location from '../location';
 import Stats from '../stats';
+import Publications from '../stats/publications';
 import Intro from '../intro';
 import About from '../about';
 import Person from '../person/person';
@@ -102,11 +103,16 @@ export default class App extends Component {
             <div>
               <div className='padding-both bukvitsa'>
                 The estimated number of the published seals of the Kievan Rus’ period is more than 10k.<br /> 
-                However, many of them are illegible and bring just a little useful information, so it is pretty important to collect pictures of multiple specimens to study them properly. <br /> 
+                However, many of them are illegible and bring little useful information, so it is important to collect pictures of multiple specimens to study them properly. <br /> 
                 Our database currently contains 3k seals, and we are planning to develop it further adding all published seals and enhancing functionality.
               </div>
               <MapComponent />
-              <Stats />
+            </div>
+          } />
+
+          <Route path="/publications" element={
+            <div>
+              <Publications />
             </div>
           } />
 

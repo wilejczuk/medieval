@@ -5,6 +5,7 @@ import Loading from '../../loading';
 import Upload from '../upload';
 
 import './add-type.css';
+import { getCookie } from '../../../helpers/cookie';
 
 export default class AddType extends Component {
 
@@ -12,7 +13,8 @@ export default class AddType extends Component {
 
   state = {
     literature: null,
-    loading: false
+    loading: false,
+    defaultPublication: ''
   };
 
   componentDidMount() {
@@ -20,6 +22,7 @@ export default class AddType extends Component {
       .then((body) => {
         this.setState({
           literature: body.data,
+          defaultPublication: getCookie('selectedPublication')??''
         });
       });
   }
@@ -35,7 +38,7 @@ export default class AddType extends Component {
   }
 
   render() {
-    const {literature, loading} = this.state;
+    const {literature, defaultPublication, loading} = this.state;
     if (!literature) {
       return (
         <h3>Literature is loading.</h3>
@@ -57,7 +60,7 @@ export default class AddType extends Component {
           <Formik
              initialValues={{ size: '', weight: '', findingSpot: '', findingSpotComments: '', 
               picture: null, obvStamp: null, revStamp: null, orient: null, poster: localStorage.getItem("user"),
-               publication: '', page: '', number: '', obvGroup: searchParams['ot'],
+               publication: defaultPublication, page: '', number: '', obvGroup: searchParams['ot'],
                obvDescription: searchParams['o'], revDescription: searchParams['r'],
                revGroup: searchParams['rt'], obvIndex: searchParams['oi'], revIndex: searchParams['ri']}}
 
