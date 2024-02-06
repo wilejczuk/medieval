@@ -39,7 +39,7 @@ export default class AppFooter extends Component {
         )
       }
 
-    const recordsmanLink = `/person/${recordsman['id']}`;
+    const recordsmanLink = `/person/${recordsman['name_en']}`;
 
     return (
     <footer className="footer-section">
@@ -73,24 +73,7 @@ export default class AppFooter extends Component {
                             </ul>
                         </div>
                     </div>
-                    {/*
-                    <div className="col-xl-4 col-lg-4 col-md-6 mb-50">
-                        <div className="footer-widget">
-                            <div className="footer-widget-heading">
-                                <h3>Subscribe</h3>
-                            </div>
-                            <div className="footer-text mb-25">
-                                <p>Don’t miss to subscribe to our new feeds, kindly fill the form below.</p>
-                            </div>
-                            <div className="subscribe-form">
-                                <form action="#">
-                                    <input type="text" placeholder="Email Address" />
-                                    <button><i className="fab fa-telegram-plane"></i></button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                    */
+                    {
                     <div className="col-xl-4 col-lg-4 col-md-6 mb-50 centered">
                         Seals in the database
                         <br />

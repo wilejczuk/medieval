@@ -440,7 +440,7 @@ from (${grandRequest}) magna
 
 app.get('/stampsSorted',
         (req, res) => {
-            connection.query(`select * from (select magna.*, count(distinct sps.id) cnt, ${yaninsSelections}
+            connection.query(`select * from (select magna.*, count(distinct sps.id) cnt, ${extendedCopyrightSelections}
 from (${grandRequest}) magna
                   inner join specimens sps on magna.obv = sps.idObv and magna.rev = sps.idRev
                   left join publicationSpecimen pS on sps.id = pS.idSpecimen
@@ -448,8 +448,8 @@ from (${grandRequest}) magna
                   group by sps.idObv, sps.idRev) x
                   ORDER BY
                   CASE
-                    WHEN idPublication in (2,10,46) THEN 1  
-                    ELSE 2  
+                    WHEN idPublication in (2,10,46,36,37) THEN 2  
+                    ELSE 1   
                   END,
                   CASE
                     WHEN idPublication in (2,10,46) THEN CAST(pubNo AS SIGNED)
@@ -533,6 +533,9 @@ GROUP by p.id)`;
 
 const yaninsSelections = `MAX(CASE WHEN pS.idPublication in (2,10,46) THEN pS.idPublication ELSE NULL END) AS idPublication,
 MAX(CASE WHEN pS.idPublication in (2,10,46) THEN pS.number ELSE NULL END) AS pubNo`;
+
+const extendedCopyrightSelections = `MAX(CASE WHEN pS.idPublication in (2,10,46,36,37) THEN pS.idPublication ELSE NULL END) AS idPublication,
+MAX(CASE WHEN pS.idPublication in (2,10,46,36,37) THEN pS.number ELSE NULL END) AS pubNo`;
 
 app.get('/dukesStamps',
     (req, res) => {
@@ -714,6 +717,17 @@ app.get('/specimensGeo',
             заполнены, а у других нет - они тоже будут посчитаны
             */
 
+            connection.query(searchString,
+                    function (error, results) {
+                      if (error) console.log(error);
+                      else return res.json (results);
+                    }
+            );
+});
+
+app.get('/specimenNumbers',
+        (req, res) => {
+            let searchString = `SELECT id, idObv, idRev FROM specimens`;
             connection.query(searchString,
                     function (error, results) {
                       if (error) console.log(error);

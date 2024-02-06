@@ -72,7 +72,6 @@ export default class Stamps extends Component {
             this.setState({
               stampsList: body.data
             });
-            //console.log (body.data); 
           });
       }
     }
@@ -98,20 +97,25 @@ export default class Stamps extends Component {
           `${YaninOrGaydukov} #` + pubNo.substring(0, indexSearch) : null;
       }
 
+      const typeImages = (janinNo && !localStorage.getItem("token")) ? null :
+      (<div>
+        <a href={specimensPath}>
+          <img src={obvPath} height="100" alt="Obverse" />
+          <img src={revPath} height="100" alt="Reverse" />
+        </a>
+      </div>);
+
       const janinClass = idPublication == 2 ? 'janin-2 capitalize' : idPublication == 10 ? 'janin-10 capitalize' : 'janin-46 capitalize';
 
       const uniqueKey = `${obv}-${rev}`;
       return (
         <div key={uniqueKey}>
-          <div>
-            <a href={specimensPath}>
-              <img src={obvPath} height="100" alt="Obverse" />
-              <img src={revPath} height="100" alt="Reverse" />
-            </a>
-          </div>
+          {typeImages}
           <div className="top-add">
             <div className={janinClass}> {janinNo} </div>
-            <div>{obverse} <br /> {reverse} <div className="quantity"> <b>Specimens</b>: {cnt} listed</div></div>
+            <div>{obverse} <br /> {reverse} 
+              <div className="quantity"><b>Specimens</b>: <a href={specimensPath}>{cnt}</a> listed</div>
+            </div>
           </div>
         </div>
       );

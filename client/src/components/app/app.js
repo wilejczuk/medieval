@@ -104,7 +104,7 @@ export default class App extends Component {
               <div className='padding-both bukvitsa'>
                 The estimated number of the published seals of the Kievan Rus’ period is more than 10k.<br /> 
                 However, many of them are illegible and bring little useful information, so it is important to collect pictures of multiple specimens to study them properly. <br /> 
-                Our database currently contains 3k seals, and we are planning to develop it further adding all published seals and enhancing functionality.
+                Our database currently contains 3.7k seals, and we are planning to develop it further adding all published seals and enhancing functionality.
               </div>
               <MapComponent />
             </div>
@@ -123,6 +123,12 @@ export default class App extends Component {
           } />
 
           <Route path="/type/:o/:r" element={
+            <div>
+              <TypesWrapper />
+            </div>
+          } />
+
+          <Route path="/type/:o/:r/:s" element={
             <div>
               <TypesWrapper />
             </div>

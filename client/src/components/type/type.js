@@ -18,6 +18,20 @@ export default class Type extends Component {
     mode: ""
   };
 
+  scrollToElement = (elementId) => {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+      element.style.border = "1px solid #00bc8c"; 
+      element.style.borderRadius = "20px"; 
+      setTimeout(() => {
+        element.style.border = "none"; 
+        element.style.borderRadius = "none";
+      }, 1000);
+
+    }
+  };
+
   componentDidMount() {
     let searchParams = this.props.match.params;
     this.stampsData.getType([searchParams["o"],searchParams["r"]])
@@ -27,12 +41,12 @@ export default class Type extends Component {
         });
       });
 
-      this.stampsData.getTypeAttributions([searchParams["o"]])
-      .then((body) => {
-        this.setState({
-          typeAttributions: body.data,
-        });
+    this.stampsData.getTypeAttributions([searchParams["o"]])
+    .then((body) => {
+      this.setState({
+        typeAttributions: body.data,
       });
+    });
   }
 
   renderAttributions(arr) {
@@ -214,22 +228,28 @@ export default class Type extends Component {
         panelClass = "items-pad";
         break;
       default:
-        items = (<Specimens onAdded={() => this.completeAdd()} items={showType} />);
+        items = (<Specimens 
+          onAdded={() => this.completeAdd()} 
+          items={showType} 
+          scrollToElement={this.scrollToElement}
+          selection={this.props.match.params["s"]} />);
   
         itemsHeader = (<div className="footer-widget-heading"><h3>Known specimens</h3></div>);
     
         panelClass = "items";
     }
 
+    const stampImages = localStorage.getItem("token") ? (<p>
+          <img src={obvPath} height="120" alt="Obverse" />
+          <img src={revPath} height="120" alt="Reverse" />
+          <br />
+          {addMore}
+      </p>) : null;
+
     return (
       <div className="main-grid">
         <div className="stamp-overview">
-            <p>
-                <img src={obvPath} height="120" alt="Obverse" />
-                <img src={revPath} height="120" alt="Reverse" />
-                <br />
-                {addMore}
-            </p>
+            {stampImages}
             {description}
             {codirect}
             {attribution}

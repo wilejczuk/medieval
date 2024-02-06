@@ -49,6 +49,10 @@ export default class InternalService {
     return await axios.get(`${this._apiBase}specimensGeo`);
   }
 
+  async getSpecimenNumbers() {
+    return await axios.get(`${this._apiBase}specimenNumbers`);
+  }
+
   async getLiterature() {
     return await axios.get(`${this._apiBase}literature`);
   }

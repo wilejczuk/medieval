@@ -9,6 +9,12 @@ export default class Specimens extends Component {
 
   stampsData = new InternalService();
 
+  componentDidMount() {
+    const { scrollToElement, selection } = this.props;
+    const elementId = `specimen${selection}`;
+    setTimeout(()=> scrollToElement(elementId), 1000);
+  }
+
   renderItems(arr) {
     let existingSpecimens = [];
     let unpackedReferences = [];
@@ -32,7 +38,7 @@ export default class Specimens extends Component {
         if (maxDiameter) params += `Diameter: ${maxDiameter} mm`;
 
         return (
-          <div key={uniqueKey} className="items-pad">
+          <div key={uniqueKey} className="items-pad" id={uniqueKey}>
             {image}
             <div className="paddington">
               {catNo}

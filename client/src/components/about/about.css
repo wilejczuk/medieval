@@ -36,11 +36,21 @@
     z-index: 2; /* Set a higher z-index to ensure it's above the video */
     pointer-events: none; /* Allow interaction with the video element below */
   }
+
+  .search_specimens{
+    width: 100px;
+    border-radius: 10px;
+    margin-left: -15px;
+    margin-top: 5px;
+  }
+
+  .top_left{
+    top: 20px; 
+    left: 20px; 
+  }
   
   .toggle-button {
     background-color: #00bc8c; /* Red background color (similar to YouTube) */
-    top: 20px; /* Adjust as needed to position the button from the top */
-    left: 20px; /* Adjust as needed to position the button from the left */
     z-index: 3; /* Ensure the button is above other elements */
     color: #FFFFFF; /* White text color */
     border: none;
