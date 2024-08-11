@@ -1,0 +1,78 @@
+.rd3t-link {
+    stroke: white !important;
+  }
+
+.sign_little {
+  height: 20px;
+  margin: 4px;
+} 
+
+.greyed {
+  color: grey;
+}
+
+.additional {
+  text-align: center;
+  font-size: smaller;
+}
+
+.button_up {
+  float: right;
+}
+
+.circle-father {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  line-height: 1;
+  border-radius: 50%;
+  background-color: rgb(122, 163, 184);
+  color: white;
+  text-align: center;
+  position: relative;
+}
+
+.circle-warning {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  line-height: 1;
+  border-radius: 50%;
+  background-color:lightcoral;
+  color: white;
+  text-align: center;
+  position: relative;
+}
+
+ul.map-cartouche {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 20px;
+  background-color: #f9f1e9;
+  border: 3px solid #ad7d4d;
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+ul.map-cartouche li {
+  list-style-type: none;
+  margin-left: 10px;
+  padding: 5px 0;
+  font-size: 18px;
+  color: #6b3e19;
+  text-shadow: 1px 1px 1px #fff;
+  cursor: pointer;
+}
+
+ul.map-cartouche ul {
+  margin-left: 20px;
+  padding-left: 20px;
+  border-left: 2px dashed #ad7d4d;
+}
+
+ul.map-cartouche ul li {
+  padding: 0;
+  font-style: italic;
+  color: #ad7d4d;
+}

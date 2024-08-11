@@ -18,10 +18,13 @@ import SearchPanel from '../search-panel';
 import Type from '../type';
 import AddType from '../type/add-type';
 import Location from '../location';
-import Stats from '../stats';
-import Publications from '../stats/publications';
+import Genealogy from '../genealogy';
+import Paleography from '../paleography';
+import ByPublication from '../bibliography';
+import Publications from '../bibliography/publications';
 import Intro from '../intro';
 import About from '../about';
+import Features from '../about/features';
 import Person from '../person/person';
 
 export default class App extends Component {
@@ -35,18 +38,6 @@ export default class App extends Component {
   };
 
   componentDidMount() {
-    /* Redirect to the attribution page in Russian if needed
-    axios
-      .get("https://ipapi.co/json/")
-      .then((response) => {
-        if (["Russia", "Belarus", "Ukraine", "Moldova"].includes(response.data.country_name) &&
-          window.location.pathname===`/` && !this.token) 
-            window.location.replace(`/attribute`);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-    */  
     setInterval(() => {
       //API queried to prevent falling asleep
       axios.get(`https://server.kievan-rus.online/dukes`);
@@ -67,6 +58,11 @@ export default class App extends Component {
     const LocationWrapper = (props) => {
       const params = useParams();
       return <Location {...{...props, match: {params}} } />
+    }
+
+    const PublicationWrapper = (props) => {
+      const params = useParams();
+      return <ByPublication {...{...props, match: {params}} } />
     }
 
     const AddTypesWrapper = (props) => {
@@ -102,9 +98,9 @@ export default class App extends Component {
           <Route path="/stats" element={
             <div>
               <div className='padding-both bukvitsa'>
-                The estimated number of the published seals of the Kievan Rus’ period is more than 10k.<br /> 
+                The estimated number of seals of Kievan Rus’ published with their photos and some metrological data is more than 10k.<br /> 
                 However, many of them are illegible and bring little useful information, so it is important to collect pictures of multiple specimens to study them properly. <br /> 
-                Our database currently contains 3.7k seals, and we are planning to develop it further adding all published seals and enhancing functionality.
+                Our database currently contains 6k+ seals, and we are planning to develop it further adding all published seals and enhancing functionality.
               </div>
               <MapComponent />
             </div>
@@ -119,6 +115,12 @@ export default class App extends Component {
           <Route path="/about" element={
             <div>
               <About />
+            </div>
+          } />
+
+          <Route path="/features" element={
+            <div>
+              <Features />
             </div>
           } />
 
@@ -137,6 +139,12 @@ export default class App extends Component {
           <Route path="/location/:geo" element={
             <div>
               <LocationWrapper />
+            </div>
+          } />
+
+          <Route path="/publication/:id" element={
+            <div>
+              <PublicationWrapper />
             </div>
           } />
 
@@ -170,6 +178,18 @@ export default class App extends Component {
           <Route path="/attribute" element={
             <div>
               <Attribute />
+            </div>
+          } />
+
+          <Route path="/genealogy" element={
+            <div>
+              <Genealogy />
+            </div>
+          } />
+
+          <Route path="/paleography" element={
+            <div>
+              <Paleography />
             </div>
           } />
 

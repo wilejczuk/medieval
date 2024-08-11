@@ -10,11 +10,13 @@ export default class SearchPanel extends Component {
     choice: ["saints", null, "saints", null]
   };
 
-  onChangeValue (side, group, id) {
+  onChangeValue (side, group, id, opt) {
     let changingChoice = this.state.choice;
     let i = side.charAt(0)==='o'? 0:2;
     changingChoice[i] = group;
-    changingChoice[i+1] = id;
+    changingChoice[i+1] = id + opt;
+    console.log (changingChoice);
+
     this.setState({choice: changingChoice});
   }
 
@@ -26,8 +28,8 @@ export default class SearchPanel extends Component {
   render() {
     return (
       <form action='search' onSubmit={this.formSubmit}>
-        <SearchBand side="obv" onChange={(group, id) => this.onChangeValue ("obv", group, id) }/>
-        <SearchBand side="rev" onChange={(group, id) => this.onChangeValue ("rev", group, id) }/>
+        <SearchBand side="obv" onChange={(group, id, opt) => this.onChangeValue ("obv", group, id, opt) }/>
+        <SearchBand side="rev" onChange={(group, id, opt) => this.onChangeValue ("rev", group, id, opt) }/>
         <div className='main-button'>
           <button type="submit" className="btn btn-primary">Find</button>
         </div>

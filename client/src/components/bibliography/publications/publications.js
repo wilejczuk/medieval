@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import InternalService from '../../../services/internal-api';
 import './publications.css';
+import axios from 'axios';
 import { getCookie } from '../../../helpers/cookie';
 
-const renderRecords = (records) => {
+const renderRecords = (records, renderRecord) => {
   records = records.map(record => {
     if (!localStorage.getItem("token") && record.count === 0) return null;
     return record;
@@ -23,12 +24,12 @@ const renderRecords = (records) => {
   (
     <div key={year} className="year">
       <h2>{year}</h2>
-      {renderYearRecords(yearRecords)}
+      {renderYearRecords(yearRecords, renderRecord)}
     </div>
   ):null);
 };
 
-const renderYearRecords = (yearRecords) => {
+const renderYearRecords = (yearRecords, renderRecord) => {
   // Group records by journal and number if journal is not null
   const groupedByJournalAndNumber = yearRecords.reduce((acc, record) => {
     const { journal, number, place } = record;
@@ -67,27 +68,6 @@ const renderYearRecords = (yearRecords) => {
   ));  
 };
 
-const renderRecord = (record) => {
-  const { id, name, number, journal, place, count } = record;
-  const volume = number ? `Volume ${number}.` : null;
-  const optionKey = `option${id}`;
-  return (
-    <div>
-      {journal !== null ? (
-          <div className="journals_article"> 
-            <span>{localStorage.getItem("token") && (<input type="radio" name="publications-list" value={optionKey} onChange={handleRadioChange} />)} {name}</span>  
-            <span className="count_specimens">{count}</span>
-          </div>
-            ) : (
-          <div className="separate_book">
-            <span>{localStorage.getItem("token") && (<input type="radio" name="publications-list" value={optionKey} onChange={handleRadioChange} />)} {name} {volume} {place}</span>  
-            <span className="count_specimens">{count}</span>
-          </div>
-      )}
-    </div>
-  );
-};
-
 function setCookie(name, value, days) {
   let expires = "";
   if (days) {
@@ -106,6 +86,7 @@ function handleRadioChange() {
 const Publications = () => {
   const stampsData = new InternalService();
   const [publicationsAdvanced, setPublicationsAdvanced] = useState(null);
+  const [english, setEnglish] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -119,6 +100,44 @@ const Publications = () => {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const checkLanguageCookie = () => {
+      const cookies = document.cookie.split('; ').reduce((acc, cookie) => {
+        const [name, value] = cookie.split('=');
+        acc[name] = value;
+        return acc;
+      }, {});
+      if (!cookies.language) {
+        axios.get('https://ipapi.co/json/')
+          .then((response) => {
+            if (!['Russia', 'Belarus', 'Ukraine', 'Bulgaria'].includes(response.data.country_name) && !stampsData.token) {
+              let date = new Date();
+              date.setTime(date.getTime() + (30 * 24 * 60 * 60 * 1000));
+              document.cookie = `language=en; expires=${date.toUTCString()}; path=/`;
+              applyTranslation('en');
+            }
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+      else if (getCookie('language') === 'en') setEnglish(true);
+    };
+  
+    checkLanguageCookie();
+  }, [stampsData.token]);
+
+  const applyTranslation = (language) => {
+    const interval = setInterval(() => {
+      const googleTranslateElement = document.querySelector('.goog-te-combo');
+      if (googleTranslateElement) {
+        googleTranslateElement.value = language;
+        googleTranslateElement.dispatchEvent(new Event('change'));
+        clearInterval(interval);
+      }
+    }, 1000); 
+  };
 
   useEffect(() => {
     if (publicationsAdvanced) {
@@ -136,6 +155,31 @@ const Publications = () => {
     )
   }
 
+  const renderRecord = (record) => {
+    const { id, name, name_en, number, journal, place, count } = record;
+    const volume = number ? `Volume ${number}.` : null;
+    const optionKey = `option${id}`;
+    const url = `./publication/${id}`;
+    const englishName = (english && !name.includes(name_en)) ? ` ${name_en} /` : ``;
+    const link = count>0 ? (<span><a href={url} target='_blank'><i>{englishName}</i> {name}</a></span>): name;
+    
+    return (
+      <div>
+        {journal !== null ? (
+            <div className="journals_article"> 
+              <span>{localStorage.getItem("token") && (<input type="radio" name="publications-list" value={optionKey} onChange={handleRadioChange} />)} {link}</span>  
+              <span className="count_specimens">{count}</span>
+            </div>
+              ) : (
+            <div className="separate_book">
+              <span>{localStorage.getItem("token") && (<input type="radio" name="publications-list" value={optionKey} onChange={handleRadioChange} />)} {link} {volume} {place}</span>  
+              <span className="count_specimens">{count}</span>
+            </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="footer-widget-heading padding-both">
             <h3>Bibliography</h3>
@@ -149,7 +193,7 @@ const Publications = () => {
       
       {localStorage.getItem("token") && (<div><input type="radio" name="publications-list" value="option0" onChange={handleRadioChange} /> Автоматически не заполнять</div>)}
       <br />
-      {renderRecords(publicationsAdvanced)}
+      {renderRecords(publicationsAdvanced, renderRecord)}
     </div>
   );
 };

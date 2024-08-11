@@ -5,9 +5,6 @@ export default class SearchDetails extends Component {
   render() {
     const {side, arr, group} = this.props;
 
-    if (group == "text")
-      return (<div className="pseudo-text" id="obvText"> Anything else </div>);
-
     let groupCaption = '';  
 
     return arr.map(({id, text, subGroup}) => {

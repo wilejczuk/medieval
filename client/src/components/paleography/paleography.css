@@ -1,0 +1,24 @@
+.letter_box {
+    background-color: #444;
+    color: #fff;
+    border-radius: 5px;
+    padding: 20px;
+    font-size: 150%;
+  }
+
+.smaller {
+    font-size: 0.5em;
+    opacity: 0.8;
+}
+
+.dependent_images {
+    opacity: 0.8;
+    height: 20px;
+    border-radius: 5px;    
+}
+
+.main_image {
+    height: 60px;
+    border-radius: 5px;
+    box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.4);
+}

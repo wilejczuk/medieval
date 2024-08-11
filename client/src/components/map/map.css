@@ -63,3 +63,7 @@ ul.nodot {
   height: 70vw;
   margin-bottom: 20px;
 }
+
+.point-marker{
+  height: 1.2em;
+}

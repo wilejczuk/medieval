@@ -1,0 +1,52 @@
+
+.advanced-options {
+  grid-column: span 2;
+  padding-left: 10px;
+}
+
+.advanced-option[type="checkbox"] {
+  opacity: 0;
+}
+
+.advanced-option-label {
+  display: inline-block;
+  height: 1em;
+  background-color: #202020;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: smaller;
+}
+
+.advanced-option-label::after {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: #00bc8c;
+  border-radius: 2px;
+  margin: 4px;
+  opacity: 0;
+}
+
+.advanced-option[type="checkbox"]:checked + .advanced-option-label::after {
+  opacity: 1;
+}
+
+.arrow-down::after {
+  content: "▼";
+  color: #999999;
+}
+
+.arrow-right::after {
+  content: "▶";
+  color: #999999;
+}
+
+.options-hint{
+  font-size: x-small;
+  color: #999999;
+}
+
+.advanced-option-span{
+  margin-top: 10px;
+}

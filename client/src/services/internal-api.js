@@ -2,10 +2,10 @@ import axios from 'axios';
 
 export default class InternalService {
 
-  //_apiBase = 'http://localhost:3000/';
-  //_clientBase = 'http://localhost:3001/';
-  _apiBase = 'https://server.kievan-rus.online/';
-  _clientBase = 'https://kievan-rus.online/';
+  _apiBase = 'http://localhost:3000/';
+  _clientBase = 'http://localhost:3001/';
+  //_apiBase = 'https://server.kievan-rus.online/';
+  //_clientBase = 'https://kievan-rus.online/';
 
   token = localStorage.getItem("token");
   defaultHeaders = { headers: 
@@ -14,6 +14,30 @@ export default class InternalService {
       'Authorization': `Bearer ${this.token}`
       }
     }
+
+  getMapping(groupIndex) {
+    let group;
+    switch (groupIndex) {
+      case 1:
+        group = 'saints';
+        break;
+      case 2:
+        group = 'crosses';
+        break;
+      case 3:
+        group = 'signs';
+        break;
+      case 4:
+        group = 'letters';
+        break;
+      case 0:
+        group = 'other';
+        break;
+      default:
+        break;
+    }
+    return group;
+  }  
 
   async getAuthentication(url, username, password) {
     return await axios.post(`${this._apiBase}${url}`, {
@@ -41,8 +65,16 @@ export default class InternalService {
     return await axios.get(`${this._apiBase}dukesList`, {params: params});
   }
 
+  async getDukesGenealogy() {
+    return await axios.get(`${this._apiBase}detailedGenealogy`);
+  }
+
   async getDukesEnum() {
     return await axios.get(`${this._apiBase}dukes`);
+  }
+
+  async getPaleography() {
+    return await axios.get(`${this._apiBase}paleography`);
   }
 
   async getLocations() {
@@ -66,7 +98,7 @@ export default class InternalService {
   }
 
   async getCoordinates(address) {
-    return await axios.get(`https://geocode.maps.co/search?q="${address}"`);
+    return await axios.get(`${this._apiBase}getGeodata`, {params: { q: address }});
   }
 
   async setCoordinates(params) {
@@ -82,7 +114,11 @@ export default class InternalService {
   }
 
   async getPublicationSpecimens() {
-    return await axios.get(`${this._apiBase}publicationSpecimens`);
+    return await axios.get(`${this._apiBase}publicationSpecimens_old`);
+  }
+
+  async getPublicationSpecimen(params) {
+    return await axios.get(`${this._apiBase}publicationSpecimens`, {params: params});
   }
 
   async getPublicationsAdvanced() {
@@ -113,8 +149,16 @@ export default class InternalService {
     return await axios.get(`${this._apiBase}selectDictionaries`);
   }
 
+  async getOblasts() {
+    return await axios.get(`${this._apiBase}selectOblasts`);
+  }
+
   async getSaint(params) {
     return await axios.get(`${this._apiBase}selectSaint`, {params: params});
+  }
+
+  async getOther(params) {
+    return await axios.get(`${this._apiBase}selectOther`, {params: params});
   }
 
   async getCross(params) {

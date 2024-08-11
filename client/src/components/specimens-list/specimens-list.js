@@ -12,26 +12,34 @@ export default class Specimens extends Component {
   componentDidMount() {
     const { scrollToElement, selection } = this.props;
     const elementId = `specimen${selection}`;
-    setTimeout(()=> scrollToElement(elementId), 1000);
+    if (scrollToElement) setTimeout(()=> scrollToElement(elementId), 1000);
   }
 
   renderItems(arr) {
     let existingSpecimens = [];
     let unpackedReferences = [];
-    arr.map(({id, imgType, name, year, page, number, geo, weight, maxDiameter, copyright}) => {
+    arr.map(({id, idObv, idRev, imgType, name, year, page, number, geo, weight, maxDiameter, copyright}) => {
       if (existingSpecimens.indexOf(id) === -1) {
         existingSpecimens.push(id);
-        unpackedReferences.push({id, imgType, geo, weight, maxDiameter, copyright, refs: [{id, name, year, page, number}]});
+        unpackedReferences.push({id, idObv, idRev, imgType, geo, weight, maxDiameter, copyright, refs: [{id, name, year, page, number}]});
       } else {
         unpackedReferences.find(o => o.id === id)['refs'].push({id, name, year, page, number});
       }
     });
 
-    return unpackedReferences.map(({id, imgType, refs, geo, weight, maxDiameter, copyright}) => {
+    const handleZoom = () => {
+      document.querySelector('.zoomed-image-container').style.display = 'block';
+    };
+
+    return unpackedReferences.map(({id, idObv, idRev, imgType, refs, geo, weight, maxDiameter, copyright}) => {
         const path = `${this.stampsData._apiBase}specimens/${id}.${imgType}`;
-        const image = (copyright && !localStorage.getItem("token")) ? null : (<img src={path} height="150" alt="Specimen" />);
+        const image = (copyright && !localStorage.getItem("token")) ? null : 
+        (<a href={path} target="_blank" data-zoompic>
+            <img src={path} height="150" alt="Specimen" />
+        </a>);
         const uniqueKey = `specimen${id}`;
-        const catNo = (<span className='cat-no'>Cat.# {id}</span>);
+        const inTypeLink = `${this.stampsData._clientBase}type/${idObv}/${idRev}/${id}`;
+        const catNo = (<span className='cat-no'><a href={inTypeLink}>Cat.# {id}</a></span>);
         let params = ` `;
         if (geo) params += `${geo}. `;
         if (weight) params += `Weight: ${weight} g. `;

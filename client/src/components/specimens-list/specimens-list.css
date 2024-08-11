@@ -29,3 +29,7 @@
   .circle-info:hover::before {
     opacity: 1;
   }
+
+  a[data-zoomPic] {
+    cursor: zoom-in;
+  }

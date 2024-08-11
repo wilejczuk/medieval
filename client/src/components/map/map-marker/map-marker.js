@@ -37,13 +37,13 @@ export default class MapMarker extends Component {
     const path = `${this.stampsData._apiBase}specimens/${id}.${imgType}`;
     const link = `/location/${geo}`;
 
-    const icon = new this.numberedIcon({number: cnt < 10 ? '•' : cnt});
+    const icon = new this.numberedIcon({number: cnt < 15 ? '•' : cnt});
 
     const radius = 
-      cnt===1 ? 5000 :
-        cnt<10 ? 10000 : 
-          cnt<20 ? 15000 :
-            cnt<50 ? 25000 : 30000;
+      cnt===1 ? 2500 :
+        cnt<10 ? 5000 : 
+          cnt<20 ? 7500 :
+            cnt<50 ? 12000 : 15000;
     
     const fill = 
       cnt===1 ? 'red' :
@@ -66,8 +66,9 @@ export default class MapMarker extends Component {
                   },
                 }}
                 center={{lat:lat, lng: lon}}
-                fillColor={fill} 
+                fillColor='green' 
                 color='grey'
+                weight={0.5}
                 fillOpacity= '0.8'
                 radius={radius}
                  />

@@ -39,7 +39,9 @@ export default class AppFooter extends Component {
         )
       }
 
-    const recordsmanLink = `/person/${recordsman['name_en']}`;
+    const recordsmanLink = `/person/${recordsman['id']}`;
+
+    const genealogyLink = localStorage.getItem("user") && (<li><a href="/genealogy">Genealogy</a></li>);
 
     return (
     <footer className="footer-section">
@@ -66,10 +68,14 @@ export default class AppFooter extends Component {
                             </div>
                             <ul>
                                 <li><a href="/">Home</a></li>
+                                {genealogyLink}
                                 <li><a href="/about">About the system</a></li>
                                 <li><a href="/stats">Geography</a></li>
+                                <li><a href="/features">New features</a></li>
+                                <li><a href="/paleography">Paleography</a></li>
                                 <li><a href='mailto:creators@kievan-rus.online'>Contact us</a></li>
-                                <li><a href="/publications">Bibliography</a></li>
+                                <li><a href="/publications">Bibliography</a></li>                                
+                                
                             </ul>
                         </div>
                     </div>
@@ -79,7 +85,7 @@ export default class AppFooter extends Component {
                         <br />
                     <CountUp
                         className="numbers"
-                        start={0}
+                        start={3500}
                         end={specimensCount}
                         duration={8}
                         useEasing={true}
@@ -88,7 +94,7 @@ export default class AppFooter extends Component {
                         decimals={0}
                     />
                     <br /><br />
-                        Most attributed seals belong to <br /> 
+                        The largest number of attributed types <br /> 
                         <a href={recordsmanLink}>{recordsman['name_en']}</a>
                         <br />
                     <CountUp

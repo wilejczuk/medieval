@@ -39,6 +39,12 @@ export default class Stamps extends Component {
             this.setState({[side]: body.data});
           });
         break;
+      case "other":
+        this.stampsData.getOther([index])
+          .then((body) => {
+            this.setState({[side]: body.data});
+          });
+        break;
       default:
     }
   }
@@ -135,8 +141,6 @@ export default class Stamps extends Component {
 
     if (obv===null) obv = searchParams["o"];
     if (rev===null) rev = searchParams["r"];
-    // if (obv===undefined && stampsList[0].issuerName) obv = stampsList[0].issuerName;
-    // Now shown at left, not needed, but may be reused
 
     const selection = [obv, rev, stampsList.length];
     const params = stampsList.length === 0 ? searchParams : stampsList[0].typeId;

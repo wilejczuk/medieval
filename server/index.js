@@ -4,6 +4,7 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const https = require('https');
 const mysql = require('mysql');
 const crypto = require('crypto');
 var session = require('express-session');
@@ -81,7 +82,7 @@ passport.use(new JWTStrategy({
                 return cb(error);
             console.log(results);
             return cb(null, results[0]);
-    }
+        }
 )}));
 
 // Protected routes (only for JWT bearers above)
@@ -249,7 +250,8 @@ app.get('/contribute', (req, res) => {
 });
 
 app.get('/selectSaint', (req, res) => {
-    connection.query(`Select * from saints where id = ${req.query['0']}`, function (error, results) {
+    const id = req.query['0'].split(/[abcde]/g)[0];
+    connection.query(`Select * from saints where id = ${id}`, function (error, results) {
         if (error) {
             console.log(error);
         }
@@ -259,8 +261,22 @@ app.get('/selectSaint', (req, res) => {
     });
 });
 
+app.get('/selectOther', (req, res) => {
+    const id = req.query['0'].split(/[abcde]/g)[0];
+    connection.query(`Select * from other where id = ${id}`, function (error, results) {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            if (results.length === 0) return res.json("Anything");
+            return res.json(`${results[0].image}`);
+        }
+    });
+});
+
 app.get('/selectCross', (req, res) => {
-    connection.query(`Select * from crosses where id = ${req.query['0']}`, function (error, results) {
+    const id = req.query['0'].split(/[abcde]/g)[0];
+    connection.query(`Select * from crosses where id = ${id}`, function (error, results) {
         if (error) {
             console.log(error);
         }
@@ -271,7 +287,8 @@ app.get('/selectCross', (req, res) => {
 });
 
 app.get('/selectLetter', (req, res) => {
-    connection.query(`Select * from letters where id = ${req.query['0']}`, function (error, results) {
+    const id = req.query['0'].split(/[abcde]/g)[0];
+    connection.query(`Select * from letters where id = ${id}`, function (error, results) {
         if (error) {
             console.log(error);
         }
@@ -279,6 +296,44 @@ app.get('/selectLetter', (req, res) => {
             return res.json(results[0].symbol);
         }
     });
+});
+
+app.get('/selectOblasts', (req, res) => {
+    connection.query(`Select * from geodata`, function (error, results) {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            return res.json(results);
+        }
+    });
+});
+
+let reqs = 0;
+
+app.get('/getGeodata', async (req, res) => {
+    const { q } = req.query;
+    try {
+        reqs++;
+        await new Promise(resolve => setTimeout(resolve, reqs * 1500));
+
+        const url = `https://geocode.maps.co/search?api_key=65ff466c7e0df938638527mhx3d44c3&q=${encodeURIComponent(q)}`;
+        
+        https.get(url, response => {
+            let data = '';
+            
+            response.on('data', chunk => {
+                data += chunk;
+            });
+            
+            response.on('end', () => {
+                res.json(JSON.parse(data));
+            });
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
 app.get('/selectDictionaries', (req, res) => {
@@ -303,7 +358,7 @@ app.get('/selectDictionaries', (req, res) => {
             saints = results;
             connection.query(`Select s.id, s.type, sc.name from signs s
                                 left join signCategories sc on s.idCategory = sc.id
-                                order by sc.id`, function (error, results) {
+                                order by sc.id, s.id`, function (error, results) {
                 if (error) {
                     console.log(error);
                 }
@@ -477,13 +532,13 @@ function getDBIndex(group) {
       index = 3;// Знак
       break;
     case 'letters':
-      index = 4;// Буква
+      index = 4;// Буква или текст
       break;
-    case 'text':
-      index = 0;// Текст
+    case 'other':
+      index = 0;// Другое
       break;
     case '0':
-      // Другое
+      // Пока не изобретено
       break;
   }
   return index;
@@ -491,7 +546,9 @@ function getDBIndex(group) {
 
 const grandRequest = `SELECT DISTINCT tp.id typeId, tp.obvImageGroup, tp.revImageGroup, st1.id obv, st2.id rev,
     st1.imgType obvType, st2.imgType revType, tp.obvImageId, tp.revImageId,
-    st1.description obvDescription, st2.description revDescription, st1.isCoDirectional codirect,
+    st1.description obvDescription, st2.description revDescription,
+    st1.description_en obvDescription_en, st2.description_en revDescription_en,
+    st1.isCoDirectional codirect,
     CASE
         WHEN tp.obvImageGroup = 0 THEN tp.obvText
         WHEN tp.obvImageGroup = 1 THEN CONCAT(saints1.name_en, ' ', saints1.epithet_en)
@@ -519,6 +576,8 @@ const grandRequest = `SELECT DISTINCT tp.id typeId, tp.obvImageGroup, tp.revImag
     left join crosses crosses2 on crosses2.id = tp.revImageId
     left join letters letters1 on letters1.id = tp.obvImageId
     left join letters letters2 on letters2.id = tp.revImageId
+    left join other other1 on other1.id = tp.obvImageId
+    left join other other2 on other2.id = tp.revImageId
     where st1.isObverse and st1.id!=st2.id`; 
 
 const compositePublications = `(select p.id, p.year, p.copyright,
@@ -663,37 +722,195 @@ app.get('/dukesList',
         );
 });
 
+app.get('/dukesGenealogy', 
+    (req, res) => {
+        connection.query(`SELECT pr.*, COUNT(DISTINCT pa.idObverse) stamps_count
+        FROM personalia pr
+        LEFT JOIN publicationAttribution pa ON pa.idPersona = pr.id AND pa.isTentative = false
+        LEFT JOIN stamps st ON pa.idObverse = st.id
+        GROUP BY pr.id
+        ORDER BY pr.dateDeath`,
+                function (error, results) {
+                  if (error) console.log(error);
+                  else return res.json (results);
+                }
+        );
+});
+
+app.get('/paleography', 
+    (req, res) => {
+        connection.query(`SELECT 
+                            l1.id,
+                            l1.symbol AS 'symbol',
+                            GROUP_CONCAT(DISTINCT l2.symbol ORDER BY l2.id ASC SEPARATOR ',') AS corresponding,
+                            GROUP_CONCAT(DISTINCT l2.id ORDER BY l2.id ASC SEPARATOR ',') AS corresponding_id
+                            FROM 
+                            types t
+                        JOIN 
+                            letters l1 ON (t.obvImageId = l1.id OR t.revImageId = l1.id) AND l1.id < 1000
+                        JOIN 
+                            letters l2 ON ((t.obvImageId = l2.id AND (t.obvImageId != l1.id OR t.revImageId = t.obvImageId)) OR (t.revImageId = l2.id AND t.revImageId != l1.id)) AND l2.id < 1000
+                        WHERE 
+                            t.obvImageGroup = 4 AND t.revImageGroup = 4 
+                        GROUP BY 
+                            l1.symbol
+                        ORDER BY 
+                            l1.id ASC`,
+                function (error, results) {
+                  if (error) console.log(error);
+                  else return res.json (results);
+                }
+        );
+});
+
+app.get('/detailedGenealogy', 
+    (req, res) => {
+        connection.query(`SELECT 
+            pr.id,
+            pr.name,
+            pr.name_en,
+            pr.dateBirth,
+            pr.dateDeath,
+            pr.datePower,
+            pr.birthProximity,
+            pr.powerProximity,
+            pr.deathProximity,
+            pr.idFather,
+            pr.idHusband,
+            patrons.name_en patron,
+            father.patron fathersPatron,
+            COUNT(DISTINCT pa.idObverse) AS stamps_count,
+            GROUP_CONCAT(DISTINCT sai.name_en) AS saint_names,
+            GROUP_CONCAT(DISTINCT CONCAT(sig.id,".",sig.type)) AS sign_ids
+        FROM 
+            personalia pr
+        LEFT JOIN 
+            publicationAttribution pa ON pa.idPersona = pr.id AND pa.isTentative = false
+        LEFT JOIN 
+            saints patrons ON pr.idPatron = patrons.id
+        LEFT JOIN 
+            (SELECT pr.id, patrons.name_en patron FROM personalia pr 
+                LEFT JOIN saints patrons ON pr.idPatron = patrons.id) father ON father.id = pr.idFather
+        LEFT JOIN 
+            stamps st ON pa.idObverse = st.id
+        LEFT JOIN 
+            types typ ON typ.id = st.idType
+        LEFT JOIN 
+            saints sai ON (typ.obvImageGroup = 1 AND sai.id = typ.obvImageId) OR (typ.revImageGroup = 1 AND sai.id = typ.revImageId)
+        LEFT JOIN 
+            signs sig ON (typ.obvImageGroup = 3 AND sig.id = typ.obvImageId) OR (typ.revImageGroup = 3 AND sig.id = typ.revImageId) 
+        GROUP BY 
+            pr.id
+        ORDER BY 
+            pr.dateDeath`,
+            function (error, results) {
+            if (error) console.log(error);
+            else return res.json (results);
+            }
+        );
+});
+
+
 app.get('/parametrizedStamps',
         (req, res) => {
             let condition1Exists = "", condition3Exists = "";
             let condition1OppositeExists = "", condition3OppositeExists = "";
 
-            if (!['null','0'].includes(req.query['1'])) {
-                condition1Exists = `and ${req.query['0']}1.id=${req.query['1']}`;
-                condition1OppositeExists = `and ${req.query['0']}2.id=${req.query['1']}`;
+            let obverseTable = req.query['0'];
+            let reverseTable = req.query['2']; 
+            let obverseId = req.query['1'].split(/[abcde]/g)[0];
+            let reverseId = req.query['3'].split(/[abcde]/g)[0];  
+
+            let obverseSearchOptions = req.query['1'].match(/[abcde]/g) || [];
+            let reverseSearchOptions = req.query['3'].match(/[abcde]/g) || [];
+
+            if (!['null','0'].includes(obverseId)) {
+                // Single values
+                let obverseMatchingIds = [obverseId];
+                if (obverseTable === 'saints' && obverseSearchOptions.includes('b')) obverseMatchingIds.push('43'); // Id of the uncertain saint in saints
+                let obvIds = obverseMatchingIds.join(','); 
+
+                // Multi values
+                let obvSaintConditions = [];
+                if (obverseTable === 'saints' && obverseSearchOptions.includes('c')) 
+                    obvSaintConditions.push(`(SELECT id FROM saints 
+                                        WHERE epithet_en='uncertain' 
+                                        AND subGroup = (SELECT subGroup FROM saints WHERE id = ${obverseId}) LIMIT 1)`); // Id of the uncertain saint of the same subGroup in saints
+                if (obverseTable === 'saints' && obverseSearchOptions.includes('d')) 
+                    obvSaintConditions.push(`(SELECT GROUP_CONCAT(id) FROM saints 
+                                        WHERE subGroup = (SELECT subGroup FROM saints WHERE id = ${obverseId}) LIMIT 1)`); // Ids of all saints of the same subGroup in saints  
+                if (obvSaintConditions.length > 0)
+                    obvIds = `CONCAT('${obvIds},', ${obvSaintConditions.join(',')})`;
+
+                if (obverseTable === 'signs' && obverseSearchOptions.includes('e'))
+                    obvIds = `CONCAT('${obvIds},', (SELECT GROUP_CONCAT(id) FROM signs 
+                                        WHERE idCategory = (SELECT idCategory FROM signs WHERE id = ${obverseId}) LIMIT 1))`; // Ids of all signs of the same category in signs   
+                if (!obvIds.includes('SELECT')) obvIds = `'${obvIds}'`;
+
+                condition1Exists = `and FIND_IN_SET (${obverseTable}1.id, ${obvIds})`;
+                condition1OppositeExists = `and FIND_IN_SET (${obverseTable}2.id, ${obvIds})`;
             };
-            if (!['null','0'].includes(req.query['3'])) {
-              condition3Exists = `and ${req.query['2']}2.id=${req.query['3']}`;
-              condition3OppositeExists = `and ${req.query['2']}1.id=${req.query['3']}`;
+            if (!['null','0'].includes(reverseId)) {
+                // Single values
+                let reverseMatchingIds = [reverseId];
+                if (reverseTable === 'saints' && reverseSearchOptions.includes('b')) reverseMatchingIds.push('43'); // Id of the uncertain saint in saints
+                let revIds = reverseMatchingIds.join(',');    
+
+                // Multi values   
+                let revSaintConditions = [];
+                if (reverseTable === 'saints' && reverseSearchOptions.includes('c')) 
+                    revSaintConditions.push(`(SELECT id FROM saints 
+                                        WHERE epithet_en='uncertain' 
+                                        AND subGroup = (SELECT subGroup FROM saints WHERE id = ${reverseId}) LIMIT 1)`); // Id of the uncertain saint of the same subGroup in saints
+                if (reverseTable === 'saints' && reverseSearchOptions.includes('d')) 
+                    revSaintConditions.push(`(SELECT GROUP_CONCAT(id) FROM saints 
+                                        WHERE subGroup = (SELECT subGroup FROM saints WHERE id = ${reverseId}) LIMIT 1)`); // Ids of all saints of the same subGroup in saints  
+                if (revSaintConditions.length > 0)
+                    revIds = `CONCAT('${revIds},', ${revSaintConditions.join(',')})`;                        
+                
+                if (reverseTable === 'signs' && reverseSearchOptions.includes('e')) 
+                    revIds = `CONCAT('${revIds},', (SELECT GROUP_CONCAT(id) FROM signs 
+                                        WHERE idCategory = (SELECT idCategory FROM signs WHERE id = ${reverseId}) LIMIT 1))`; // Ids of all signs of the same category in signs  
+                if (!revIds.includes('SELECT')) revIds = `'${revIds}'`;
+
+                condition3Exists = `and FIND_IN_SET (${reverseTable}2.id, ${revIds})`;
+                condition3OppositeExists = `and FIND_IN_SET (${reverseTable}1.id, ${revIds})`;
             };
+
+            let directConditionForObverse = `tp.obvImageGroup = ${getDBIndex(obverseTable)} ${condition1Exists}`;
+            let directConditionForReverse = `tp.revImageGroup = ${getDBIndex(reverseTable)} ${condition3Exists}`;
+            let counterConditionForObverse = `tp.revImageGroup = ${getDBIndex(obverseTable)} ${condition1OppositeExists}`;
+            let counterConditionForReverse = `tp.obvImageGroup = ${getDBIndex(reverseTable)} ${condition3OppositeExists}`;
+
+            let directConditions = [];
+            let counterConditions = [];
+
+            if (!obverseSearchOptions.includes('a')) {
+                directConditions.push(directConditionForObverse);
+                counterConditions.push(counterConditionForObverse);
+            }
+            if (!reverseSearchOptions.includes('a')) {
+                directConditions.push(directConditionForReverse);
+                counterConditions.push(counterConditionForReverse);
+            }
+
+            let fullDirectCondition = directConditions.join(" and ");
+            let fullCounterCondition = counterConditions.join(" and ");
 
             let searchString =
             `select magna.*, count(distinct sps.id) cnt, ${yaninsSelections}
             from specimens sps
             left join publicationSpecimen pS on sps.id = pS.idSpecimen
             inner join (${grandRequest}
-                      and ((
-                          tp.obvImageGroup = ${getDBIndex(req.query['0'])} ${condition1Exists}
-                          and tp.revImageGroup = ${getDBIndex(req.query['2'])} ${condition3Exists}
-                        ) or (
-                          tp.revImageGroup = ${getDBIndex(req.query['0'])} ${condition1OppositeExists}
-                          and tp.obvImageGroup = ${getDBIndex(req.query['2'])} ${condition3OppositeExists}
-                        )
+                      and (
+                          (${fullDirectCondition}) or (${fullCounterCondition})
                       )
                     ) magna on magna.obv = sps.idObv and magna.rev = sps.idRev
-                    where not (magna.obvImageGroup=0 and magna.revImageGroup = 0 and magna.obvImageId > 0 and magna.revImageId > 0)
                   group by sps.idObv, sps.idRev`;
                 console.log(searchString);
+                // Перед group by sps.idObv, sps.idRev удалена следующая строка, юс-кейс забыт, но надо помониторить    
+                // where not (magna.obvImageGroup=0 and magna.revImageGroup = 0 and magna.obvImageId > 0 and magna.revImageId > 0)
+
                   connection.query(searchString,
                     function (error, results) {
                       if (error) console.log(error);
@@ -820,6 +1037,26 @@ app.get('/locationSpecimens',
             );
 });
 
+app.get('/publicationSpecimens',
+        (req, res) => {
+            let searchString =
+                    `select s.*, pub.name, pub.year, pub.copyright, ps.page, ps.number from
+                     (select sps.*, magna.*
+                      from specimens sps
+                      inner join (${grandRequest}) magna on magna.obv = sps.idObv and magna.rev = sps.idRev
+                    ) s
+                              left join publicationSpecimen ps on ps.idSpecimen = s.id
+                              left join ${compositePublications} pub on pub.id = ps.idPublication
+                              where pub.id='${req.query['0']}'
+                              ORDER BY ps.page, ps.number`;
+            connection.query(searchString,
+                    function (error, results) {
+                      if (error) console.log(error);
+                      else return res.json (results);
+                    }
+            );
+});
+
 app.get('/getSpecimensCount',
 (req, res) => {
     let searchString = `select count(1) from specimens`;
@@ -846,7 +1083,7 @@ app.get('/getAttributionsCount',
     );
 });
 
-app.get('/publicationSpecimens',
+app.get('/publicationSpecimens_old',
         (req, res) => {
             let searchString =
                     `select p.id, p.name, p.year, count(ps.id) count 
@@ -865,9 +1102,9 @@ app.get('/publicationSpecimens',
 app.get('/publicationsAdvanced',
         (req, res) => {
             let searchString =
-                    `select p.id, p.name, p.year, p.journal, p.number, p.place, count(ps.id) count 
+                    `select p.id, p.name, p.name_en, p.year, p.journal, p.number, p.place, count(ps.id) count 
                     from (select p.id, p.year, p.copyright, j.name journal, p.number, p.place,
-                        CONCAT(GROUP_CONCAT(a.name_ru ORDER BY p.id, pa.id SEPARATOR ', '), ', ', p.name) name   
+                        CONCAT(GROUP_CONCAT(a.name_ru ORDER BY p.id, pa.id SEPARATOR ', '), ', ', p.name) name, p.name_en   
                     from publications p 
                     left join publicationAuthor pa on p.id = pa.idPublication 
                     left join authors a on a.id = pa.idAuthor 

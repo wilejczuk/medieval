@@ -126,11 +126,12 @@ export default class Type extends Component {
 
     const obvPath = `${this.stampsData._apiBase}/stamps/${showType[0].idObv}.${showType[0].obvType}`;
     const revPath = `${this.stampsData._apiBase}/stamps/${showType[0].idRev}.${showType[0].revType}`;
-
+    const obvSignImage = showType[0].obvImageGroup===3 ? (<p><img height="50px" className="rounded faded" src={`${this.stampsData._apiBase}/signs/${showType[0].obvImageId}.jpg`} /></p>) : null;
+    const revSignImage = showType[0].revImageGroup===3 ? (<p><img height="50px" className="rounded faded" src={`${this.stampsData._apiBase}/signs/${showType[0].revImageId}.jpg`} /></p>) : null;
     const description = showType[0].obvDescription ? (
                 <div>
-                  <p><b>Obv</b>: {showType[0].obvDescription} </p>
-                  <p><b>Rev</b>: {showType[0].revDescription} </p>
+                  <p><b>Obv</b>: {showType[0].obvDescription}</p> {obvSignImage}
+                  <p><b>Rev</b>: {showType[0].revDescription}</p> {revSignImage}
                 </div>
               ) : null;
 
@@ -169,7 +170,7 @@ export default class Type extends Component {
     const onlyFilledCoordinates = this.state.showType.filter((el) => el.longitude && el.latitude )
 
     const coordinates = onlyFilledCoordinates.map((el) => {
-      const uniqueKey = `specimen_${el.id}`
+      const uniqueKey = `specimen_${el.id}_${el.number}`
       const markerFormat = {id: el.id, imgType: el.imgType, idObv: el.idObv, idRev: el.idRev,
          geo:el.geo, lat: el.latitude, lon: el.longitude, cnt: 2};
       return (<MapMarker key={uniqueKey} parameters={markerFormat} />)
@@ -239,9 +240,12 @@ export default class Type extends Component {
         panelClass = "items";
     }
 
+    const typeLink = `${this.stampsData._clientBase}search/${this.stampsData.getMapping(showType[0].obvImageGroup)}/${showType[0].obvImageId}/${this.stampsData.getMapping(showType[0].revImageGroup)}/${showType[0].revImageId}`;
     const stampImages = localStorage.getItem("token") ? (<p>
+          <a href={typeLink}>
           <img src={obvPath} height="120" alt="Obverse" />
           <img src={revPath} height="120" alt="Reverse" />
+          </a>
           <br />
           {addMore}
       </p>) : null;

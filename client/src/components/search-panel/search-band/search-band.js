@@ -2,6 +2,7 @@ import React, { Component }  from 'react';
 import './search-band.css';
 import InternalService from '../../../services/internal-api';
 import SearchDetails from '../search-details';
+import SearchOptions from '../search-options';
 
 export default class SearchBand extends Component {
   stampsData = new InternalService();
@@ -12,8 +13,11 @@ export default class SearchBand extends Component {
     signs: null,
     crosses: null,
     letters: null,
+    other: [{id: 1, text: "Portrait"}, {id: 2, text: "Rosette"}, {id: 3, text: "Anything else"}], // Заменить запросом из БД при усложнении
     currentSelection: "saints",
-    filterText: ""
+    filterText: "",
+    subTypeChoise: null,
+    selectedOptions: []
   };
 
   componentDidMount() {
@@ -41,7 +45,20 @@ export default class SearchBand extends Component {
 
   selectItems(kind) {
     this.setState({ currentSelection: kind });
-    this.props.onChange(kind, kind === "text" ? 0: null);
+    this.props.onChange(kind, null, []);
+    this.setState({ subTypeChoise: null, selectedOptions: [] });
+    this.searchOptionsRef.resetAdvancedSearch();
+  }
+
+  handleCheckboxChange = (checkboxId) => {
+    this.setState(prevState => ({
+      selectedOptions: prevState.selectedOptions.includes(checkboxId)
+        ? prevState.selectedOptions.filter(id => id !== checkboxId)
+        : [...prevState.selectedOptions, checkboxId]
+    }),
+    () => {
+      this.props.onChange(this.state.currentSelection, this.state.subTypeChoise, this.state.selectedOptions);
+    });
   }
 
   render() {
@@ -97,8 +114,15 @@ export default class SearchBand extends Component {
             <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("letters")}>Lettering</button>
             <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("signs")}>Tamgha</button>
             <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("crosses")}>Cross</button>
-            <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("text")}>Other</button>
+            <button type="button" className="btn btn-secondary" onClick={() => this.selectItems("other")}>Other</button>
           </div>
+
+            <SearchOptions  group = {currentSelection}
+                            arr = {this.state[currentSelection=='saints'?'fullSaints':currentSelection]} 
+                            subtype = {this.state.subTypeChoise}
+                            ref={(ref) => (this.searchOptionsRef = ref)} 
+                            onCheckboxChange={this.handleCheckboxChange}
+            />
 
           {saintsSearch}
 
@@ -106,7 +130,7 @@ export default class SearchBand extends Component {
             <SearchDetails  side={side}
                             group={currentSelection}
                             arr={this.state[currentSelection]}
-                            onChange={(group, id) => onChange(group, id)}
+                            onChange={(group, id) =>{ this.setState({ subTypeChoise: id }); onChange(group, id, this.state.selectedOptions)}}
             />
           </div>
       </div>
