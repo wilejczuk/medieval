@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity,
+import { StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity,
   FlatList, Modal, ScrollView, StatusBar, ImageBackground, ActivityIndicator } from 'react-native';
 import InternalService from '../services/internal-api';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -157,7 +157,7 @@ export default function IssuersCoins({ route }) {
         colors={['#A43C3C', 'rgba(0, 0, 0, 0.8)']}
         style={styles.wrapper}
       >
-        <View style={styles.header}>
+        <SafeAreaView style={styles.header}>
           <TouchableOpacity onPress={handleBackPress} style={styles.headerButton}>
             <Ionicons name="arrow-back" size={24} color="#FFFAEE" />
           </TouchableOpacity>
@@ -166,7 +166,7 @@ export default function IssuersCoins({ route }) {
 
           {forward}
 
-        </View>
+        </SafeAreaView>
         <View style={styles.container}>
           {isLoading ? (
             <ActivityIndicator size="large" color="blue" />

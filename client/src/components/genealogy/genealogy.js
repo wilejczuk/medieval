@@ -34,8 +34,8 @@ const Genealogy = () => {
       setTreeKey(Date.now());
     };
     const arrowDirection = (nodeDatum.id === startNode) ? 
-      (<span onClick={handleSetParentNode}>⇟</span>) :
-      (<span onClick={handleSetStartNode}>⇞</span>);
+      (<span onClick={handleSetParentNode}>⇞</span>) :
+      (<span onClick={handleSetStartNode}>⇟</span>);
 
     const metSaints = nodeDatum.saint_names && nodeDatum.saint_names.map((el) => {
       if (nodeDatum.fathers_patron === el)
@@ -51,9 +51,15 @@ const Genealogy = () => {
             <div> 
               {nodeDatum.sign_links && nodeDatum.sign_links.length > 0 && (
                 <div>
-                  {nodeDatum.sign_links.map((link, index) => (
-                    <img key={index} src={link} alt={`Sign ${index + 1}`} className='sign_little' />
-                  ))}
+                  {nodeDatum.sign_links.map((link, index) => {
+                    let signSearchLink = `/search/signs/${link.match(/signs\/(.*?)\./)[1]}/other/nulla`;
+                    let imgKey = 'sign' + link.match(/signs\/(.*?)\./)[1];
+                    return (
+                      <a target="_blank" href={signSearchLink}>
+                        <img key={imgKey} src={link} alt={`Sign ${index + 1}`} className='sign_little' />
+                      </a>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -99,7 +105,8 @@ const Genealogy = () => {
   }
 
   useEffect(() => {
-    const exculdeSaints = ['Богоматерь', 'Иисус', 'Святой', 'Святая'];
+    const exculdeSaints_ru = ['Богоматерь', 'Иисус', 'Святой', 'Святая'];
+    const exculdeSaints = ['Our Lady', 'Jesus', 'Saint'];
     data.getDukesGenealogy()
     .then((body) => {
       const simplified = body.data.filter(el=>el.idFather!== null).map(({
@@ -137,7 +144,7 @@ const Genealogy = () => {
 
           return {
             id: id,
-            name: name.split(" ")[0],
+            name: name_en.split(" ")[0],
             death: death,
             parent: idFather,
             link: `/person/${id}`,
@@ -156,7 +163,6 @@ const Genealogy = () => {
       if (treeRef.current) {
         const nodeHeight = 150; 
         const depth = calculateDepth(tree); 
-        console.log(depth)
         const height = nodeHeight * depth + 75; 
 
         setContainerHeight(height);

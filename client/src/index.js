@@ -1,10 +1,13 @@
 import React from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './components/app';
+import { LanguageProvider } from './context/LanguageContext';
 
 const rootElement = document.getElementById('root');
 const root = createRoot(rootElement);
 
 root.render(
-  <App />
+  <LanguageProvider>
+      <App />
+  </LanguageProvider>
 );

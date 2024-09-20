@@ -15,7 +15,7 @@ export default class Attribute extends Component {
   };
 
   componentDidMount() {
-    document.title = `Seals of Kievan Rus' - Атрибуция артефактов`;
+    document.title = `Seals of Ancient Rus' - Атрибуция артефактов`;
     this.setState({
       loading: false,
       sent: false

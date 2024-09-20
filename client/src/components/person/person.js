@@ -1,32 +1,37 @@
 import React, { Component }  from 'react';
 import InternalService from '../../services/internal-api';
 import './person.css';
+import { LanguageContext } from '../../context/LanguageContext';
+import { checkLanguageCookie } from '../../helpers/translation';
 
 export default class Person extends Component {
 
   data = new InternalService();
+  static contextType = LanguageContext;
 
   state = {
     duke: null,
     contemporaryPersonalia: null
   };
 
-  componentDidMount() {
+  async componentDidMount() {
     let searchParams = this.props.match.params;
+    const isEnglish = await checkLanguageCookie();
+    this.context.setEnglish(isEnglish);
 
     this.data.getDuke([searchParams["id"]])
-        .then((body) => {
-          this.setState({
-            duke: body.data
-          });
+      .then((body) => {
+        this.setState({
+          duke: body.data
         });
+      });
 
     this.data.getPersonContemporaries([searchParams["id"]])
     .then((body) => {
       this.setState({
         contemporaryPersonalia: body.data
       });
-    });    
+    });
   }
 
   renderItems(arr) {
@@ -82,6 +87,7 @@ export default class Person extends Component {
     const contemporariesItems = contemporaries.length > 0 ? (<div className={classNames}>Contemporaries: {contemporaries}</div>) : null;
     const branchLink = `/${duke.duke.idBranch}`;
     const branch = duke.duke.branch ? (<div>Branch: <a href={branchLink}>{duke.duke.branch}</a></div>) : null;
+    const story = localStorage.token ? duke.duke.story : duke.duke.story_en;
 
     return (
       <div>
@@ -94,7 +100,7 @@ export default class Person extends Component {
         {descendantItems}
         {predecessor}
         {successor}
-        <div className="padding-left story-description">{duke.duke.story}</div>
+        <div className="padding-left story-description">{story}</div>
         {contemporariesItems}
       </div>
     )

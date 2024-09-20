@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import InternalService from '../../../services/internal-api';
 import './publications.css';
-import axios from 'axios';
 import { getCookie } from '../../../helpers/cookie';
+import { checkLanguageCookie }  from '../../../helpers/translation';
+import { LanguageContext } from '../../../context/LanguageContext';
 
 const renderRecords = (records, renderRecord) => {
   records = records.map(record => {
@@ -86,7 +87,7 @@ function handleRadioChange() {
 const Publications = () => {
   const stampsData = new InternalService();
   const [publicationsAdvanced, setPublicationsAdvanced] = useState(null);
-  const [english, setEnglish] = useState(false);
+  const { english, setEnglish } = useContext(LanguageContext);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -102,42 +103,14 @@ const Publications = () => {
   }, []);
 
   useEffect(() => {
-    const checkLanguageCookie = () => {
-      const cookies = document.cookie.split('; ').reduce((acc, cookie) => {
-        const [name, value] = cookie.split('=');
-        acc[name] = value;
-        return acc;
-      }, {});
-      if (!cookies.language) {
-        axios.get('https://ipapi.co/json/')
-          .then((response) => {
-            if (!['Russia', 'Belarus', 'Ukraine', 'Bulgaria'].includes(response.data.country_name) && !stampsData.token) {
-              let date = new Date();
-              date.setTime(date.getTime() + (30 * 24 * 60 * 60 * 1000));
-              document.cookie = `language=en; expires=${date.toUTCString()}; path=/`;
-              applyTranslation('en');
-            }
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-      }
-      else if (getCookie('language') === 'en') setEnglish(true);
-    };
-  
-    checkLanguageCookie();
-  }, [stampsData.token]);
-
-  const applyTranslation = (language) => {
-    const interval = setInterval(() => {
-      const googleTranslateElement = document.querySelector('.goog-te-combo');
-      if (googleTranslateElement) {
-        googleTranslateElement.value = language;
-        googleTranslateElement.dispatchEvent(new Event('change'));
-        clearInterval(interval);
-      }
-    }, 1000); 
-  };
+    checkLanguageCookie()
+    .then((result) => {
+        setEnglish(result && !localStorage.getItem("token"));
+    })
+    .catch((error) => {
+        console.error('Error checking language cookie:', error);
+    });
+  }, []);
 
   useEffect(() => {
     if (publicationsAdvanced) {

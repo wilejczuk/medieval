@@ -7,6 +7,7 @@ import {
   BrowserRouter as Router, Routes, Route, Link, useParams
 } from "react-router-dom";
 
+
 import LoginForm from '../login-form';
 import Attribute from '../attribute'; 
 import Stamps from '../stamps-list';
@@ -98,7 +99,7 @@ export default class App extends Component {
           <Route path="/stats" element={
             <div>
               <div className='padding-both bukvitsa'>
-                The estimated number of seals of Kievan Rus’ published with their photos and some metrological data is more than 10k.<br /> 
+                The estimated number of seals of Ancient Rus’ published with their photos and some metrological data is more than 10k.<br /> 
                 However, many of them are illegible and bring little useful information, so it is important to collect pictures of multiple specimens to study them properly. <br /> 
                 Our database currently contains 6k+ seals, and we are planning to develop it further adding all published seals and enhancing functionality.
               </div>

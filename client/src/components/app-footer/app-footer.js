@@ -41,8 +41,6 @@ export default class AppFooter extends Component {
 
     const recordsmanLink = `/person/${recordsman['id']}`;
 
-    const genealogyLink = localStorage.getItem("user") && (<li><a href="/genealogy">Genealogy</a></li>);
-
     return (
     <footer className="footer-section">
         <div className="container">
@@ -68,7 +66,7 @@ export default class AppFooter extends Component {
                             </div>
                             <ul>
                                 <li><a href="/">Home</a></li>
-                                {genealogyLink}
+                                <li><a href="/genealogy">Genealogy</a></li>
                                 <li><a href="/about">About the system</a></li>
                                 <li><a href="/stats">Geography</a></li>
                                 <li><a href="/features">New features</a></li>

@@ -4,6 +4,8 @@ import AddAttribution from './add-attribution';
 import Specimens from '../specimens-list/specimens-list';
 import { MapContainer, TileLayer  } from "react-leaflet";
 import MapMarker from '../map/map-marker';
+import { LanguageContext } from '../../context/LanguageContext';
+import { checkLanguageCookie } from '../../helpers/translation';
 
 import InternalService from '../../services/internal-api';
 import './type.css';
@@ -11,6 +13,7 @@ import './type.css';
 export default class Type extends Component {
 
   stampsData = new InternalService();
+  static contextType = LanguageContext;
 
   state = {
     showType: null,
@@ -32,8 +35,11 @@ export default class Type extends Component {
     }
   };
 
-  componentDidMount() {
+  async componentDidMount() {
     let searchParams = this.props.match.params;
+    const isEnglish = await checkLanguageCookie();
+    this.context.setEnglish(isEnglish);
+
     this.stampsData.getType([searchParams["o"],searchParams["r"]])
       .then((body) => {
         this.setState({
@@ -130,8 +136,8 @@ export default class Type extends Component {
     const revSignImage = showType[0].revImageGroup===3 ? (<p><img height="50px" className="rounded faded" src={`${this.stampsData._apiBase}/signs/${showType[0].revImageId}.jpg`} /></p>) : null;
     const description = showType[0].obvDescription ? (
                 <div>
-                  <p><b>Obv</b>: {showType[0].obvDescription}</p> {obvSignImage}
-                  <p><b>Rev</b>: {showType[0].revDescription}</p> {revSignImage}
+                  <p><b>Obv</b>: {(this.context.english && !localStorage.token) ? showType[0].obvDescription_en : showType[0].obvDescription}</p> {obvSignImage}
+                  <p><b>Rev</b>: {(this.context.english && !localStorage.token) ? showType[0].revDescription_en : showType[0].revDescription}</p> {revSignImage}
                 </div>
               ) : null;
 

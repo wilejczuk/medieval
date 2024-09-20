@@ -8,7 +8,7 @@ import './login-form.css';
 export default class LoginForm extends Component {
 
   componentDidMount() {
-    document.title = `Seals of Kievan Rus' - Log In`;
+    document.title = `Seals of Ancient Rus' - Log In`;
   }
 
   state = {

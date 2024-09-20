@@ -27,7 +27,7 @@ export default class AppHeader extends Component {
         </div>
         <div className="info">
           <h4>SEALS OF</h4>
-          <h1>KIEVAN RUS'</h1>
+          <h1>ANCIENT RUS'</h1>
           <div className="meta">
             for documents and fur money
           </div>

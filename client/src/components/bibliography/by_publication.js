@@ -29,6 +29,7 @@ export default class ByPublication extends Component {
   render() {
 
     const { showType } = this.state;
+    console.log(showType);
     const searchParams = this.props.match.params;
 
     if (!showType) {
